@@ -14,6 +14,10 @@ namespace DiscordBot {
 			this.repeats = repeats;
 			this.size = size;
 			random = new Random();
+			Reroll();
+		}
+
+		internal void Reroll() {
 			input = $"{repeats}d{size} (";
 			result = 0;
 			for (int i = 0; i < repeats; i++) {
@@ -24,6 +28,7 @@ namespace DiscordBot {
 				if (i != repeats - 1) input += ", ";
 			}
 			input += ")";
+			if (size == 20 && repeats == 1 && result == 20) input += " https://cdn.discordapp.com/emojis/781352087123787797.png";
 		}
 	}
 }
