@@ -8,6 +8,7 @@ namespace DiscordBot {
 		internal string input;
 		internal int repeats;
 		internal int size;
+		internal bool Critical => size == 20 && repeats == 1 && result == 20;
 		Random random;
 
 		internal Roll(int repeats, int size) {
@@ -16,6 +17,7 @@ namespace DiscordBot {
 			random = new Random();
 			Reroll();
 		}
+
 
 		internal void Reroll() {
 			input = $"{repeats}d{size} (";
@@ -28,7 +30,6 @@ namespace DiscordBot {
 				if (i != repeats - 1) input += ", ";
 			}
 			input += ")";
-			if (size == 20 && repeats == 1 && result == 20) input += " https://cdn.discordapp.com/emojis/781352087123787797.png";
 		}
 	}
 }
