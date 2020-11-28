@@ -55,6 +55,14 @@ namespace DiscordBot {
 			return false;
 		}
 
+		static async void LogMessage(DiscordMessage message) {
+			string log= $"`{message.Author.Username}#{message.Author.Discriminator} ";
+			log += $"{message.Channel?.Name} " ?? "";
+			log += $"{message.Channel.Guild?.Name} " ?? "";
+			log = $"{log.Trim()}`\n{message.Content}";
+			await relay.SendMessageAsync(log);
+		}
+
 		static async Task MainAsync() {
 			Console.WriteLine("bot online!!");
 			DiscordConfiguration config = new DiscordConfiguration() {
@@ -65,11 +73,7 @@ namespace DiscordBot {
 
 			client.MessageCreated += async e => {
 				if (e.Channel == relay) return;
-				string logString = $"`{e.Author.Username}#{e.Author.Discriminator} ";
-				logString += $"{e.Channel?.Name} " ?? "";
-				logString += $"{e.Guild?.Name} " ?? "";
-				logString = $"{logString.Trim()}`\n{e.Message.Content}";
-				relay.SendMessageAsync(logString);
+				LogMessage(e.Message);
 
 				string content = e.Message.Content.ToLower();
 				string[] segments = e.Message.Content.Split(' ');
