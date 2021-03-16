@@ -110,11 +110,12 @@ namespace DiscordBot {
 						if (rolls[j].result != rolls[j].repeats * rolls[j].size) max = false;
 						results[i] += rolls[j].result;
 						rolls[j].Reroll();
-						if (j < 4) {
+						Console.WriteLine(j);
+						// if (j < 4) {
 							rollStr[i] += $"{rolls[j].input} ";
 							if (j != rolls.Count - 1) rollStr[i] += "+ ";
-						}
-						if (j == 4) rollStr[i] += "... ";
+						// }
+						// if (j == 4) rollStr[i] += "... ";
 					}
 					if (mod < 0) rollStr[i] += $"- {-mod}";
 					else if (mod > 0) rollStr[i] += $"+ {mod}";
@@ -139,6 +140,8 @@ namespace DiscordBot {
 				else {
 					if (total == 0) await e.Message.RespondAsync(message + resultStr);
 					else await e.Message.RespondAsync(message + resultStr + $"\n**Total:** {total}\n");
+					// if (total == 0) await e.Message.RespondAsync(message + resultStr);
+					// else await e.Message.RespondAsync(message + resultStr + $"\n**Total:** {total}\n");
 				}
 				if (!(critical ^ critFail)) return;
 				// if (critical) await e.Message.RespondAsync("https://cdn.discordapp.com/emojis/781352087123787797.png");
