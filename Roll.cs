@@ -19,7 +19,7 @@ namespace DiscordBot {
 			Reroll();
 		}
 
-
+		// TODO ctr takes in the random class, rolls everything in ctr
 		internal void Reroll() {
 			input = $"{repeats}d{size} (";
 			result = 0;

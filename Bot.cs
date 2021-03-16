@@ -68,7 +68,7 @@ namespace DiscordBot {
 			Console.WriteLine("bot online!!");
 			DiscordConfiguration config = new DiscordConfiguration() {
 				Token = "NTUxMzc4Nzg4Mjg2NDY0MDAw.XHp1gw.ewM9OUP4IhPvceDj8JBn-sYNk3s"
-			};
+			}; // TODO regenerate this WHOOPS
 			client = new DiscordClient(config);
 			relay = await client.GetChannelAsync(782245881625182269);
 			
@@ -87,7 +87,7 @@ namespace DiscordBot {
 				foreach (string arg in args) {
 					if (int.TryParse(arg, out parse)) mod += parse;
 					if (arg.Equals("adv") || arg.Equals("dis") || arg.Equals("advantage") || arg.Equals("disadvantage")) repeats += 2;
-					if (arg.StartsWith("r")) {
+					if (arg.StartsWith("r") || arg.StartsWith("x")) {
 						if (int.TryParse(arg[1..], out parse)) repeats += parse;
 						else if (arg[1..].Equals("")) repeats += 2;
 					}
