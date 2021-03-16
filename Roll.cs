@@ -9,6 +9,7 @@ namespace DiscordBot {
 		internal int repeats;
 		internal int size;
 		internal bool Critical => size == 20 && repeats == 1 && result == 20;
+		internal bool CritFail => size == 20 && repeats == 1 && result == 1;
 		Random random;
 
 		internal Roll(int repeats, int size) {
