@@ -18,6 +18,10 @@ namespace DiscordBot {
 			random = new Random();
 			Reroll();
 		}
+		
+		// internal Roll(int count, int size, Random random) {
+		//
+		// }
 
 		// TODO ctr takes in the random class, rolls everything in ctr
 		internal void Reroll() {
