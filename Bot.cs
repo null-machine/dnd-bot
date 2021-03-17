@@ -20,20 +20,28 @@ class Bot {
 		};
 		client = new DiscordClient(config);
 		Console.WriteLine("picaro online!!");
-		Initialize();
+		client.MessageCreated += async args => {
+			Log(args.Message);
+			Parse(args.Message.Content);
+		};
 		Main().GetAwaiter().GetResult();
 	}
 	
-	async Task Initialize() {
+	async Task Main() {
 		relay = await client.GetChannelAsync(782245881625182269);
-		client.MessageCreated += async args => Log(args.Message);
+		await client.ConnectAsync();
+		await Task.Delay(-1);
 	}
 	
 	async Task Log(DiscordMessage message) {
 		if (message.Channel.Name != null || message.Channel.Equals(relay)) await Task.Delay(-1);
 		await relay.SendMessageAsync($"{message.Author.Username}#{message.Author.Discriminator}: {message.Content}");
+		await Task.Delay(-1);
 	}
 	
+	void Parse(string content) {
+		Console.WriteLine("parse " + content);
+	}
 	// Roll TestRoll(string split) {
 	// 	string[] splits = split.Split('d');
 	// 	int repeats = 0, size = 0;
@@ -71,8 +79,8 @@ class Bot {
 	// }
 	//
 	
-	async Task Main() {
-		
+	// async Task Main() {
+	//
 		//
 		// client.MessageCreated += async e => {
 		// 	string content = e.Message.Content.ToLower();
@@ -151,8 +159,8 @@ class Bot {
 		// 	// if (critFail) await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/781613898662019154/783040445113696326/washawash.png");
 		// 	if (critFail) await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439651457269800/image0.png");
 		// };
-	
-		await client.ConnectAsync();
-		await Task.Delay(-1);
-	}
+	//
+	// 	await client.ConnectAsync();
+	// 	await Task.Delay(-1);
+	// }
 }
