@@ -28,6 +28,6 @@ class Dice {
 
 	public override string ToString() {
 		if (count <= 10) return $"{count}d{size} ({string.Join(", ", results.Select(i => i.ToString()).ToArray())})";
-		else return $"{count}d{size} ({string.Join(", ", results.Take(10).Select(i => i.ToString()).ToArray())} ...)";
+		else return $"{count}d{size} ({string.Join(", ", results.Take(10).Select(i => i.ToString()).ToArray())} ... )";
 	}
 }

@@ -12,7 +12,7 @@ class Bot {
 	DiscordClient client;
 	DiscordChannel relay;
 	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
-	string[] rollPrefixes = new string[] { "roll ", "please roll,", "r ", "<@551378788286464000>" };
+	string[] rollPrefixes = new string[] { "roll ", "please roll ", "r " };
 	Random random = new Random();
 	Random funRandom = new Random();
 	
@@ -36,7 +36,7 @@ class Bot {
 	async Task Main() {
 		await client.ConnectAsync();
 		relay = await client.GetChannelAsync(782245881625182269);
-		await client.UpdateStatusAsync(activity: new DiscordActivity("DMs cry", ActivityType.Watching), userStatus: UserStatus.Idle);
+		await client.UpdateStatusAsync(activity: new DiscordActivity("mind games", ActivityType.Playing), userStatus: UserStatus.Online);
 		client.MessageCreated += MessageCreated;
 		await Task.Delay(-1);
 	}
@@ -48,22 +48,23 @@ class Bot {
 	
 	bool ParseRoll(DiscordMessage message) {
 		bool forced = false;
-		string content = new string(message.Content.Where(i => !char.IsPunctuation(i) || i == '-').ToArray()).ToLower();
+		string content = new string(message.Content.Where(i => !char.IsPunctuation(i) || i == '-' || i == '+').ToArray()).ToLower();
+		if (content.Equals("r") || content.Equals("roll")) forced = true;
 		foreach (string prefix in rollPrefixes) {
 			if (content.StartsWith(prefix)) {
 				forced = true;
 				break;
 			}
 		}
-		if (content.Equals("r") || content.Equals("roll")) forced = true;
-		content.Replace('+', ' ');
-		string[] args = content.Split(' ');
+		string[] args = content.Replace('+', ' ').Split(' ');
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Length];
 		int mod = 0, repeats = 0, parse;
 		for (int i = 0; i < args.Length; i++) {
 			Dice dice = ParseDice(args[i]);
-			if (dice != null) {
+			if (string.IsNullOrEmpty(args[i])) {
+				parsables[i] = true;
+			} else if (dice != null) {
 				dices.Add(dice);
 				parsables[i] = true;
 			} else if (int.TryParse(args[i], out parse)) {
@@ -91,12 +92,15 @@ class Bot {
 		bool truncated = false;
 		for (int i = 0; i < repeats; i++) {
 			results[i] = roll.Reroll();
-			if (i < 3) text.Append($"{roll}\n");
-			else if (i == 3 && repeats == 4) text.Append($"{roll}\n");
+			if (i < 4) text.Append($"{roll}\n");
 			else truncated = true;
 		}
 		if (truncated) text.Append("...\n");
-		text.Append($"**Results:** {string.Join(", ", results.Select(i => i.ToString()).ToArray())}\n");
+		if (repeats <= 20) {
+			text.Append($"**Result:** {string.Join(", ", results.Select(i => i.ToString()).ToArray())}\n");
+		} else {
+			text.Append($"**Result:** {string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ...\n");
+		}
 		int total = results.Sum(i => i.value);
 		BoldInt displayTotal = new BoldInt(total, total == roll.min * repeats || total == roll.max * repeats);
 		if (repeats > 1) text.Append($"**Total:** {displayTotal}");
