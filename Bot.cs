@@ -79,7 +79,6 @@ class Bot {
 		}
 		repeats = repeats < 1 ? 1 : repeats;
 		if (dices.Count == 0) dices.Add(new Dice(1, 20, random));
-		Console.WriteLine($"{forced} {parsables.All(i => i)} {mod} {repeats} {dices.Count}");
 		if (forced || (parsables.All(i => i) && parsables.Length > 1)) {
 			PrintRoll(message, new Roll(dices, mod), repeats);
 			return true;
@@ -87,14 +86,20 @@ class Bot {
 	}
 	
 	void PrintRoll(DiscordMessage message, Roll roll, int repeats) {
-		Console.WriteLine("printing");
 		StringBuilder text = new StringBuilder();
 		BoldInt[] results = new BoldInt[repeats];
+		bool truncated = false;
 		for (int i = 0; i < repeats; i++) {
 			results[i] = roll.Reroll();
-			text.Append($"{roll} \n");
+			if (i < 3) text.Append($"{roll}\n");
+			else if (i == 3 && repeats == 4) text.Append($"{roll}\n");
+			else truncated = true;
 		}
-		text.Append($"**Results:** ({string.Join(", ", results.Select(i => i.ToString()).ToArray())})");
+		if (truncated) text.Append("...\n");
+		text.Append($"**Results:** {string.Join(", ", results.Select(i => i.ToString()).ToArray())}\n");
+		int total = results.Sum(i => i.value);
+		BoldInt displayTotal = new BoldInt(total, total == roll.min * repeats || total == roll.max * repeats);
+		if (repeats > 1) text.Append($"**Total:** {displayTotal}");
 		message.RespondAsync(text.ToString());
 	}
 	
@@ -110,7 +115,6 @@ class Bot {
 	int ParseRepeats(string input) {
 		if (input.Equals("x")) return 2;
 		string[] splits = input.Split('x');
-		Console.WriteLine($"splits {splits.Length} {splits[1]}");
 		if (splits.Length != 2 || !(splits[0].Equals("") ^ splits[1].Equals(""))) return -1;
 		int parse;
 		if (int.TryParse(splits[0], out parse)) return parse;
@@ -119,58 +123,12 @@ class Bot {
 	}
 	
 	bool ParsePing(DiscordMessage message) {
-		string content = message.Content;
+		string content = new string(message.Content.Where(i => !char.IsPunctuation(i)).ToArray()).ToLower();
 		if (!content.StartsWith("boop ") && !content.Equals("boop")) return false;
 		message.RespondAsync(hearts[funRandom.Next(hearts.Length)]);
 		return true;
 	}
 	
-	// 	string[] rollStr = new string[repeats]; // should be a regular string
-	// 	int[] results = new int[repeats];
-	// 	string resultStr = results.Length > 1 ? "**Results:** " : "**Result:** ";
-	// 	bool critical = false, critFail = false, max = false, min = false;
-	// 	for (int i = 0; i < repeats; i++) {
-	// 		max = true; min = true;
-	// 		for (int j = 0; j < rolls.Count; j++) {
-	// 			if (rolls[j].Critical) critical = true;
-	// 			if (rolls[j].CritFail) critFail = true;
-	// 			if (rolls[j].result != rolls[j].repeats) min = false;
-	// 			if (rolls[j].result != rolls[j].repeats * rolls[j].size) max = false;
-	// 			results[i] += rolls[j].result;
-	// 			rolls[j].Reroll();
-	// 			Console.WriteLine(j);
-	// 			// if (j < 4) {
-	// 			rollStr[i] += $"{rolls[j].input} ";
-	// 			if (j != rolls.Count - 1) rollStr[i] += "+ ";
-	// 			// }
-	// 			// if (j == 4) rollStr[i] += "... ";
-	// 		}
-	// 		if (mod < 0) rollStr[i] += $"- {-mod}";
-	// 		else if (mod > 0) rollStr[i] += $"+ {mod}";
-	// 		results[i] += mod;
-	// 		if (max ^ min) resultStr += $"**{results[i]}**";
-	// 		else resultStr += $"{results[i]}";
-	// 		if (i != repeats - 1) resultStr += ", ";
-	// 	}
-	//
-	// 	string message = "";
-	// 	for (int i = 0; i < repeats; i++) {
-	// 		if (i < 4) message += $"**Roll:** {rollStr[i]}\n";
-	// 		if (i == 4) message += "...\n";
-	// 	}
-	// 	int total = 0;
-	// 	if (repeats > 1) {
-	// 		foreach (int result in results) {
-	// 			total += result;
-	// 		}
-	// 	}
-	// 	if (repeats == 1 && rolls.Count == 1 && rolls[0].repeats == 1 && mod == 0) await e.Message.RespondAsync(message);
-	// 	else {
-	// 		if (total == 0) await e.Message.RespondAsync(message + resultStr);
-	// 		else await e.Message.RespondAsync(message + resultStr + $"\n**Total:** {total}\n");
-	// 		// if (total == 0) await e.Message.RespondAsync(message + resultStr);
-	// 		// else await e.Message.RespondAsync(message + resultStr + $"\n**Total:** {total}\n");
-	// 	}
 	// 	if (!(critical ^ critFail)) return;
 	// 	// if (critical) await e.Message.RespondAsync("https://cdn.discordapp.com/emojis/781352087123787797.png");
 	// 	if (critical) await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439706432274452/image0.png");

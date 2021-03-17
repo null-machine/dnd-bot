@@ -6,7 +6,7 @@ using System.Collections.Generic;
 class Roll {
 	
 	List<Dice> dices;
-	int mod = 0, min = 0, max = 0;
+	internal int mod = 0, min = 0, max = 0;
 	
 	internal Roll(List<Dice> dices, int mod = 0) {
 		this.dices = dices;
