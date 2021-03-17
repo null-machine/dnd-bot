@@ -2,6 +2,7 @@
 - statistics message
 - per player macros
 - ping command
+- x2 2x instead of r
 
 # Roller
 - pass in size and count, returns string and total
@@ -14,4 +15,3 @@
 -
 
 # Dice
-- 

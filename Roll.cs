@@ -1,37 +1,28 @@
 using System;
+using System.Linq;
+using System.Text;
+using System.Collections.Generic;
 
 class Roll {
 	
-	internal int result;
-	internal string input;
-	internal int repeats;
-	internal int size;
-	internal bool Critical => size == 20 && repeats == 1 && result == 20;
-	internal bool CritFail => size == 20 && repeats == 1 && result == 1;
-	Random random;
+	List<Dice> dices;
+	int mod = 0, min = 0, max = 0;
 	
-	internal Roll(int repeats, int size) {
-		this.repeats = repeats;
-		this.size = size;
-		random = new Random();
-		Reroll();
-	}
-	
-	// internal Roll(int count, int size, Random random) {
-	//
-	// }
-	
-	// TODO ctr takes in the random class, rolls everything in ctr
-	internal void Reroll() {
-		input = $"{repeats}d{size} (";
-		result = 0;
-		for (int i = 0; i < repeats; i++) {
-			int roll = random.Next(1, size + 1);
-			result += roll;
-			if (roll == 1 || roll == size) input += $"**{roll}**";
-			else input += roll;
-			if (i != repeats - 1) input += ", ";
+	internal Roll(List<Dice> dices, int mod = 0) {
+		this.dices = dices;
+		this.mod = mod;
+		foreach (Dice dice in dices) { // TODO turn this into an iterator
+			min += dice.count;
+			max += dice.count * dice.size;
 		}
-		input += ")";
 	}
+	
+	internal BoldInt Reroll() {
+		int result = 0;
+		foreach (Dice dice in dices) result += dice.Reroll().value;
+		return new BoldInt(result, result == min || result == max);
+	}
+	
+	public override string ToString()
+	=> $"**Roll:** {string.Join(" + ", dices.Select(i => i.ToString()).ToArray())}";
 }
