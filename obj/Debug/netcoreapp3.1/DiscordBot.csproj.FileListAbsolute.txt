@@ -14,3 +14,6 @@ C:\Users\LOWERCASE\Desktop\discord bot but fr\obj\Debug\netcoreapp3.1\DiscordBot
 C:\Users\LOWERCASE\Desktop\discord bot but fr\obj\Debug\netcoreapp3.1\DiscordBot.dll
 C:\Users\LOWERCASE\Desktop\discord bot but fr\obj\Debug\netcoreapp3.1\DiscordBot.pdb
 C:\Users\LOWERCASE\Desktop\discord bot but fr\obj\Debug\netcoreapp3.1\DiscordBot.genruntimeconfig.cache
+C:\Users\LOWERCASE\Desktop\discord bot but fr\bin\Debug\netcoreapp3.1\Emzi0767.Common.dll
+C:\Users\LOWERCASE\Desktop\discord bot but fr\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\LOWERCASE\Desktop\discord bot but fr\bin\Debug\netcoreapp3.1\System.Runtime.CompilerServices.Unsafe.dll

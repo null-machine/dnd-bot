@@ -19,17 +19,17 @@ class Bot {
 			TokenType = TokenType.Bot
 		};
 		client = new DiscordClient(config);
-		Console.WriteLine("picaro online!!");
-		client.MessageCreated += async args => {
-			Log(args.Message);
-			Parse(args.Message.Content);
-		};
+		// client.MessageCreated += async args => {
+		// 	Log(args.Message);
+		// 	Parse(args.Message.Content);
+		// };
 		Main().GetAwaiter().GetResult();
 	}
 	
 	async Task Main() {
 		relay = await client.GetChannelAsync(782245881625182269);
 		await client.ConnectAsync();
+		await client.UpdateStatusAsync(activity: new DiscordActivity("under maintenance :wrench:"));
 		await Task.Delay(-1);
 	}
 	
