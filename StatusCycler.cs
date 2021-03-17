@@ -14,15 +14,19 @@ class StatusCycler {
 		new DiscordActivity("God", ActivityType.Playing),
 		new DiscordActivity("with fire", ActivityType.Playing),
 		new DiscordActivity("with emotions", ActivityType.Playing),
+		
 		new DiscordActivity("DM tears", ActivityType.ListeningTo),
 		new DiscordActivity("player tears", ActivityType.ListeningTo),
 		new DiscordActivity("bad influences", ActivityType.ListeningTo),
 		new DiscordActivity("last words", ActivityType.ListeningTo),
+		
 		new DiscordActivity("people lose it", ActivityType.Watching),
 		new DiscordActivity("the world burn", ActivityType.Watching),
+		new DiscordActivity("plans unravel", ActivityType.Watching),
 		
 		new DiscordActivity("seri fall off a couch", ActivityType.Watching),
 		new DiscordActivity("sully's albion rant", ActivityType.ListeningTo),
+		new DiscordActivity("chimpo's infernal kpop", ActivityType.ListeningTo),
 		new DiscordActivity("smooth eldritch blast", ActivityType.ListeningTo),
 		new DiscordActivity("distant bonking", ActivityType.ListeningTo)
 	};
@@ -40,9 +44,9 @@ class StatusCycler {
 	
 	async Task Cycle() {
 		while (true) {
-			int next = (index + random.Next(statuses.Length - 1)) % statuses.Length;
-			await client.UpdateStatusAsync(statuses[next]);
-			await Task.Delay(200000 + random.Next(100000));
+			index = (index + random.Next(statuses.Length - 1)) % statuses.Length;
+			await client.UpdateStatusAsync(statuses[index]);
+			await Task.Delay(300000 + random.Next(300000));
 		}
 	}
 }
