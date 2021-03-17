@@ -23,6 +23,10 @@ class Roll {
 		return new BoldInt(result, result == min || result == max);
 	}
 	
-	public override string ToString()
-	=> $"**Roll:** {string.Join(" + ", dices.Select(i => i.ToString()).ToArray())}";
+	public override string ToString() {
+		string data = $"**Roll:** {string.Join(" + ", dices.Select(i => i.ToString()).ToArray())}";
+		if (mod < 0) return $"{data} - {-mod}";
+		if (mod > 0) return $"{data} + {mod}";
+		return data;
+	}
 }
