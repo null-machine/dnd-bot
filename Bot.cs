@@ -14,6 +14,7 @@ class Bot {
 	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
 	string[] rollPrefixes = new string[] { "roll ", "please roll,", "r ", "<@551378788286464000>" };
 	Random random = new Random();
+	Random funRandom = new Random();
 	
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -27,7 +28,8 @@ class Bot {
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
 		if (e.Author.Equals(client.CurrentUser)) return null;
 		Log(e.Message);
-		ParseRoll(e.Message);
+		if (ParsePing(e.Message)) return null;
+		if (ParseRoll(e.Message)) return null;
 		return null;
 	}
 	
@@ -69,17 +71,19 @@ class Bot {
 				parsables[i] = true;
 			} else if (args[i].Contains('x')) {
 				parse = ParseRepeats(args[i]);
-				if (parse != -1) repeats += parse;
+				if (parse != -1) {
+					repeats += parse;
+					parsables[i] = true;
+				}
 			}
 		}
 		repeats = repeats < 1 ? 1 : repeats;
-		if (dices.Count == 0 && forced) dices.Add(new Dice(1, 20, random));
+		if (dices.Count == 0) dices.Add(new Dice(1, 20, random));
 		Console.WriteLine($"{forced} {parsables.All(i => i)} {mod} {repeats} {dices.Count}");
-		if (forced || parsables.All(i => i)) {
+		if (forced || (parsables.All(i => i) && parsables.Length > 1)) {
 			PrintRoll(message, new Roll(dices, mod), repeats);
 			return true;
-		}
-		return false;
+		} else return false;
 	}
 	
 	void PrintRoll(DiscordMessage message, Roll roll, int repeats) {
@@ -110,24 +114,14 @@ class Bot {
 		if (int.TryParse(splits[1], out parse)) return parse;
 		return -1;
 	}
-	//
-	// bool CheckBoop(string content) {
-	// 	if (content.StartsWith("boop")) return true;
-	// 	foreach (string name in names) {
-	// 		if (content.Contains(name) && content.Contains("best")) return true;
-	// 		if (content.Contains("boop") && (content.EndsWith("!") || content.Contains(name))) return true;
-	// 	}
-	// 	if (content.Contains("a boop") || content.Contains("boop for")) return true;
-	// 	return false;
-	// }
-	//
 	
-	// async Task Main() {
-	//
-	//
-	// client.MessageCreated += async e => {
-	// 	if (CheckBoop(content)) await e.Message.RespondAsync(hearts[random.Next(hearts.Length)]);
-	//
+	bool ParsePing(DiscordMessage message) {
+		string content = message.Content;
+		if (!content.StartsWith("boop ") && !content.Equals("boop")) return false;
+		message.RespondAsync(hearts[funRandom.Next(hearts.Length)]);
+		return true;
+	}
+	
 	// 	string[] rollStr = new string[repeats]; // should be a regular string
 	// 	int[] results = new int[repeats];
 	// 	string resultStr = results.Length > 1 ? "**Results:** " : "**Result:** ";
