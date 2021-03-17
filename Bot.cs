@@ -89,9 +89,12 @@ class Bot {
 	void PrintRoll(DiscordMessage message, Roll roll, int repeats) {
 		Console.WriteLine("printing");
 		StringBuilder text = new StringBuilder();
+		BoldInt[] results = new BoldInt[repeats];
 		for (int i = 0; i < repeats; i++) {
+			results[i] = roll.Reroll();
 			text.Append($"{roll} \n");
 		}
+		text.Append($"**Results:** ({string.Join(", ", results.Select(i => i.ToString()).ToArray())})");
 		message.RespondAsync(text.ToString());
 	}
 	

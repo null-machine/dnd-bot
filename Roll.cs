@@ -20,7 +20,7 @@ class Roll {
 	internal BoldInt Reroll() {
 		int result = 0;
 		foreach (Dice dice in dices) result += dice.Reroll().value;
-		return new BoldInt(result, result == min || result == max);
+		return new BoldInt(result + mod, result == min || result == max);
 	}
 	
 	public override string ToString() {
