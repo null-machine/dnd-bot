@@ -36,7 +36,7 @@ class Bot {
 	async Task Main() {
 		await client.ConnectAsync();
 		relay = await client.GetChannelAsync(782245881625182269);
-		await client.UpdateStatusAsync(activity: new DiscordActivity("DMs cry", ActivityType.Watching), userStatus: UserStatus.DoNotDisturb);
+		await client.UpdateStatusAsync(activity: new DiscordActivity("DMs cry", ActivityType.Watching), userStatus: UserStatus.Idle);
 		client.MessageCreated += MessageCreated;
 		await Task.Delay(-1);
 	}
@@ -100,7 +100,17 @@ class Bot {
 		int total = results.Sum(i => i.value);
 		BoldInt displayTotal = new BoldInt(total, total == roll.min * repeats || total == roll.max * repeats);
 		if (repeats > 1) text.Append($"**Total:** {displayTotal}");
-		message.RespondAsync(text.ToString());
+		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+			Content = text.ToString()
+		};
+		reply.WithReply(message.Id);
+		message.RespondAsync(reply);
+		
+		// someone in the server asked for this but god damn,,
+		if (repeats == 1 && roll.dices.Count == 1 && roll.dices[0].count == 1 && roll.dices[0].size == 20 && results[0].bold) {
+			if (results[0].value == roll.min) message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439651457269800/image0.png");
+			if (results[0].value == roll.max) message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439706432274452/image0.png");
+		}
 	}
 	
 	Dice ParseDice(string input) {
@@ -125,18 +135,7 @@ class Bot {
 	bool ParsePing(DiscordMessage message) {
 		string content = new string(message.Content.Where(i => !char.IsPunctuation(i)).ToArray()).ToLower();
 		if (!content.StartsWith("boop ") && !content.Equals("boop")) return false;
-		message.RespondAsync(hearts[funRandom.Next(hearts.Length)]);
+		message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
 	}
-	
-	// 	if (!(critical ^ critFail)) return;
-	// 	// if (critical) await e.Message.RespondAsync("https://cdn.discordapp.com/emojis/781352087123787797.png");
-	// 	if (critical) await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439706432274452/image0.png");
-	// 	// if (critFail) await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/781613898662019154/783040445113696326/washawash.png");
-	// 	if (critFail) await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439651457269800/image0.png");
-	// };
-	//
-	// 	await client.ConnectAsync();
-	// 	await Task.Delay(-1);
-	// }
 }
