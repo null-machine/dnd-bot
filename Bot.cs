@@ -36,9 +36,8 @@ class Bot {
 	async Task Main() {
 		await client.ConnectAsync();
 		relay = await client.GetChannelAsync(782245881625182269);
-		// await client.UpdateStatusAsync(new DiscordActivity("mind games", ActivityType.Playing));
-		new StatusCycler(client, random);
 		client.MessageCreated += MessageCreated;
+		new StatusCycler(client, funRandom);
 		await Task.Delay(-1);
 	}
 	
