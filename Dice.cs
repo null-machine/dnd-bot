@@ -26,6 +26,8 @@ class Dice {
 		return new BoldInt(result, result == count || result == count * size);
 	}
 
-	public override string ToString()
-	=> $"{count}d{size} ({string.Join(", ", results.Select(i => i.ToString()).ToArray())})";
+	public override string ToString() {
+		if (count <= 10) return $"{count}d{size} ({string.Join(", ", results.Select(i => i.ToString()).ToArray())})";
+		else return $"{count}d{size} ({string.Join(", ", results.Take(10).Select(i => i.ToString()).ToArray())} ...)";
+	}
 }
