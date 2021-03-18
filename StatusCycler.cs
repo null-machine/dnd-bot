@@ -44,7 +44,7 @@ class StatusCycler {
 	async Task Cycle() {
 		while (true) {
 			index = (index + random.Next(statuses.Length - 1)) % statuses.Length;
-			await client.UpdateStatusAsync(statuses[index]);
+			await client.UpdateStatusAsync(statuses[index], UserStatus.Invisible);
 			await Task.Delay(300000 + random.Next(300000));
 		}
 	}

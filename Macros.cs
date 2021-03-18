@@ -10,10 +10,24 @@ class Macros {
 	
 	Dictionary<ulong, Dictionary<string, string[]>> macros;
 	
-	internal bool ParseRegister(DiscordMessage message) {
-		string content = message.Content.ToLower();
-		if (!content.StartsWith("register ")) return false;
-		List<string> args = content.ParseArgs();
+	internal Macros() {
+		macros = new Dictionary<ulong, Dictionary<string, string[]>>();
+	}
+	
+	Dictionary<string, string[]> GetMacros(ulong id) {
+		if (!macros.ContainsKey(id)) macros[id] = new Dictionary<string, string[]>();
+		return macros[id];
+	}
+	
+	internal bool ParseRegister(DiscordMessage message, List<string> args) {
+		if (!args[0].Equals("register")) return false;
+		Dictionary<string, string[]> userMacros = GetMacros(message.Author.Id);
+		if (args.Count == 2) userMacros.Remove(args[1]);
+		else if (userMacros.ContainsKey(args[1])) {
+			userMacros.Remove(args[1]);
+			userMacros.Add(args[1], args.Skip(2).ToArray());
+		} else userMacros.Add(args[1], args.Skip(2).ToArray());
+		
 		return true;
 		
 	}
@@ -21,7 +35,7 @@ class Macros {
 	internal void Replace(ulong user, List<string> args) {
 		int count = args.Count;
 		for (int i = args.Count - 1; i >= 0; i--) {
-			if (macros[user].ContainsKey(args[i])) {
+			if (GetMacros(user).ContainsKey(args[i])) {
 				args.AddRange(macros[user][args[i]]);
 				args.RemoveAt(i);
 			}

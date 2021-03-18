@@ -10,6 +10,6 @@ class Loader {
 		// 	Token = ""
 		// };
 		// File.WriteAllText("Token", JsonSerializer.Serialize(data));
-		new Bot(JsonSerializer.Deserialize<Data>(File.ReadAllText("Token")).Token);
+		new Bot(JsonSerializer.Deserialize<Data>(File.ReadAllText("Token")).Token, new Macros());
 	}
 }

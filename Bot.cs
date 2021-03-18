@@ -12,19 +12,18 @@ class Bot {
 	DiscordClient client;
 	DiscordChannel relay;
 	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
-	string[] rollPrefixes = new string[] { "roll ", "please roll ", "r " };
 	Random random = new Random();
 	Random funRandom = new Random();
 	Macros macros;
 	
-	internal Bot(string token) {
-		DiscordConfiguration config = new DiscordConfiguration() {
-			Token = token,
-			TokenType = TokenType.Bot
-		};
-		client = new DiscordClient(config);
-		Main().GetAwaiter().GetResult();
-	}
+	// internal Bot(string token) {
+	// 	DiscordConfiguration config = new DiscordConfiguration() {
+	// 		Token = token,
+	// 		TokenType = TokenType.Bot
+	// 	};
+	// 	client = new DiscordClient(config);
+	// 	Main().GetAwaiter().GetResult();
+	// }
 	
 	internal Bot(string token, Macros macros) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -39,9 +38,14 @@ class Bot {
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
 		if (e.Author.Equals(client.CurrentUser)) return null;
 		Log(e.Message);
-		if (ParsePing(e.Message)) return null;
-		// if (macros.ParseRegister(e.Message)) return null;
-		if (ParseRoll(e.Message)) return null;
+		
+		string line = e.Message.Content.Replace('+', ' ').ToLower();
+		line = new string(line.Where(i => !char.IsPunctuation(i) || i == '-').ToArray());
+		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+		if (args.Count == 0) return null;
+		if (ParsePing(e.Message, args)) return null;
+		if (macros.ParseRegister(e.Message, args)) return null;
+		if (ParseRoll(e.Message, args)) return null;
 		return null;
 	}
 	
@@ -58,19 +62,13 @@ class Bot {
 		relay.SendMessageAsync($"{message.Author.Username}#{message.Author.Discriminator}: {message.Content}");
 	}
 	
-	bool ParseRoll(DiscordMessage message) {
+	bool ParseRoll(DiscordMessage message, List<string> args) {
 		bool forced = false;
-		string content = new string(message.Content.Where(i => !char.IsPunctuation(i) || i == '-' || i == '+').ToArray()).ToLower();
-		if (content.Equals("r") || content.Equals("roll")) forced = true;
-		foreach (string prefix in rollPrefixes) {
-			if (content.StartsWith(prefix)) {
-				forced = true;
-				break;
-			}
+		if (args[0].Equals("r") || args[0].Equals("roll")) {
+			forced = true;
+			args.RemoveAt(0);
 		}
-		List<string> args = content.Replace('+', ' ').Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
-		
-		// if (forced) here is where the macros does its fancy swaps
+		macros.Replace(message.Author.Id, args);
 		
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
@@ -153,9 +151,8 @@ class Bot {
 		return -1;
 	}
 	
-	bool ParsePing(DiscordMessage message) {
-		string content = new string(message.Content.Where(i => !char.IsPunctuation(i)).ToArray()).ToLower();
-		if (!content.StartsWith("boop ") && !content.Equals("boop")) return false;
+	bool ParsePing(DiscordMessage message, List<string> args) {
+		if (!args[0].Equals("boop")) return false;
 		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
