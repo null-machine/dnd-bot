@@ -11,7 +11,11 @@ class Macros {
 	Dictionary<ulong, Dictionary<string, string[]>> macros;
 	
 	internal bool ParseRegister(DiscordMessage message) {
-		return false;
+		string content = message.Content.ToLower();
+		if (!content.StartsWith("register ")) return false;
+		List<string> args = content.ParseArgs();
+		return true;
+		
 	}
 	
 	internal void Replace(ulong user, List<string> args) {
