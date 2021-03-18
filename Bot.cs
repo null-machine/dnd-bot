@@ -141,7 +141,8 @@ class Bot {
 	bool ParsePing(DiscordMessage message) {
 		string content = new string(message.Content.Where(i => !char.IsPunctuation(i)).ToArray()).ToLower();
 		if (!content.StartsWith("boop ") && !content.Equals("boop")) return false;
-		message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
+		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
+		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
 	}
 }

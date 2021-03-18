@@ -6,12 +6,12 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "DiscordBot/1.0.0": {
+      "DiceBot/1.0.0": {
         "dependencies": {
           "DSharpPlus": "4.0.0-rc2"
         },
         "runtime": {
-          "DiscordBot.dll": {}
+          "DiceBot.dll": {}
         }
       },
       "DSharpPlus/4.0.0-rc2": {
@@ -661,7 +661,7 @@
     }
   },
   "libraries": {
-    "DiscordBot/1.0.0": {
+    "DiceBot/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

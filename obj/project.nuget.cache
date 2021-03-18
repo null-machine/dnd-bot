@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "mB0fn+9LiA+BAdnoBnYjLfixFGpx0Ze1XlOhHzuvEeoS1u6hxnl0K2UuV3LyZHVwb/pauB89Rv7DQXAk1fi7oA==",
+  "dgSpecHash": "VWEaLBLlsZG3KApPFPh24VlbsQdqgyJRhhbNoHXICSwCP2ovq7Ylu8a2OhwvX9oQPJowp/dS729Q653uzCdQ+g==",
   "success": true,
-  "projectFilePath": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiscordBot.csproj",
+  "projectFilePath": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiceBot.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\LOWERCASE\\.nuget\\packages\\dsharpplus\\4.0.0-rc2\\dsharpplus.4.0.0-rc2.nupkg.sha512",
     "C:\\Users\\LOWERCASE\\.nuget\\packages\\emzi0767.common\\2.3.0\\emzi0767.common.2.3.0.nupkg.sha512",

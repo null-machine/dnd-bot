@@ -1,19 +1,7 @@
 # TODO
 - statistics message
 - per player macros
-- regenerate token
 - spell lookup
-
-# changelog
-- replies to roll commands
-- `r` is now a short form for `roll`, and has been replaced by `x`
-	- e.g. to roll something thrice, use `x3` instead of `r3`
-	- `x` without any number is short for `x2`
-- calculates and displays the total for rolls with repeats
-- responds to pings (or boops) with reactions instead of texts
-- cycles through a bunch of funky statuses
-- uses a dedicated seed for all rolls instead of creating a new seed for each roll
-	- additionally, fun effects don't affect the seed used for rolls
 
 # guide
 - roll syntax is `roll <dice> <modifier> <repeats>`
@@ -22,9 +10,7 @@
 - `<repeats>` is how many times to repeat the roll, e.g. `x2` for advantage, or `x3` for rolling three attacks at once
 
 # advanced
-- the order of parameters doesn't matter
-	- e.g. `roll 1d20 +6 x2` is the same as `roll x2 +6 1d20`
-- `+` plus signs can be omitted
+- plus signs can be omitted
 	- e.g. `roll 1d20 +6 x2` is the same as `roll 1d20 6 x2`
 - if `<dice>` doesn't specify a count, it defaults to `1`
 	- e.g. `roll 1d20 6 x2` is the same as `roll d20 6 x2`

@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiscordBot.csproj": {}
+    "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiceBot.csproj": {}
   },
   "projects": {
-    "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiscordBot.csproj": {
+    "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiceBot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiscordBot.csproj",
-        "projectName": "DiscordBot",
-        "projectPath": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiscordBot.csproj",
+        "projectUniqueName": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiceBot.csproj",
+        "projectName": "DiceBot",
+        "projectPath": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\DiceBot.csproj",
         "packagesPath": "C:\\Users\\LOWERCASE\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\LOWERCASE\\Desktop\\discord bot but fr\\obj\\",
         "projectStyle": "PackageReference",
