@@ -68,7 +68,7 @@ class Bot {
 			forced = true;
 			args.RemoveAt(0);
 		}
-		macros.Replace(message.Author.Id, args);
+		if (forced) macros.Replace(message.Author.Id, args);
 		
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
@@ -124,12 +124,6 @@ class Bot {
 		};
 		reply.WithReply(message.Id);
 		message.RespondAsync(reply);
-		
-		// someone in the server asked for this but god damn,,
-		if (repeats == 1 && roll.dices.Count == 1 && roll.dices[0].count == 1 && roll.dices[0].size == 20 && results[0].bold) {
-			if (results[0].value == roll.min) message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439651457269800/image0.png");
-			if (results[0].value == roll.max) message.RespondAsync("https://cdn.discordapp.com/attachments/820807418807582801/821439706432274452/image0.png");
-		}
 	}
 	
 	Dice ParseDice(string input) {
