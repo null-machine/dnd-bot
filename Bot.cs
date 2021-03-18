@@ -89,21 +89,23 @@ class Bot {
 	void PrintRoll(DiscordMessage message, Roll roll, int repeats) {
 		StringBuilder text = new StringBuilder();
 		BoldInt[] results = new BoldInt[repeats];
-		bool truncated = false;
+		bool truncated = false, multiple = repeats > 1;
 		for (int i = 0; i < repeats; i++) {
 			results[i] = roll.Reroll();
 			if (i < 4) text.Append($"{roll}\n");
 			else truncated = true;
 		}
 		if (truncated) text.Append("...\n");
+		if (multiple) text.Append("**Results:** ");
+		else text.Append("**Result:** ");
 		if (repeats <= 20) {
-			text.Append($"**Result:** {string.Join(", ", results.Select(i => i.ToString()).ToArray())}\n");
+			text.Append($"{string.Join(", ", results.Select(i => i.ToString()).ToArray())}\n");
 		} else {
-			text.Append($"**Result:** {string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ...\n");
+			text.Append($"{string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ...\n");
 		}
 		int total = results.Sum(i => i.value);
 		BoldInt displayTotal = new BoldInt(total, total == roll.min * repeats || total == roll.max * repeats);
-		if (repeats > 1) text.Append($"**Total:** {displayTotal}");
+		if (multiple) text.Append($"**Total:** {displayTotal}");
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 			Content = text.ToString()
 		};

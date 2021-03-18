@@ -7,6 +7,7 @@ class Roll {
 	
 	internal List<Dice> dices;
 	internal int mod = 0, min = 0, max = 0;
+	internal float Average => min + (max - min) * 0.5f;
 	
 	internal Roll(List<Dice> dices, int mod = 0) {
 		this.dices = dices;

@@ -5,6 +5,7 @@ using System.Text;
 class Dice {
 
 	internal int count, size;
+	internal float Average => count + count * size * 0.5f;
 	StringBuilder data = new StringBuilder();
 	BoldInt[] results;
 	Random random;
