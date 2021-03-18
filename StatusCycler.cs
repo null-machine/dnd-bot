@@ -15,8 +15,7 @@ class StatusCycler {
 		new DiscordActivity("with fire", ActivityType.Playing),
 		new DiscordActivity("with emotions", ActivityType.Playing),
 		
-		new DiscordActivity("DM tears", ActivityType.ListeningTo),
-		new DiscordActivity("player tears", ActivityType.ListeningTo),
+		new DiscordActivity("tears", ActivityType.ListeningTo),
 		new DiscordActivity("bad influences", ActivityType.ListeningTo),
 		new DiscordActivity("last words", ActivityType.ListeningTo),
 		
@@ -26,7 +25,7 @@ class StatusCycler {
 		
 		new DiscordActivity("seri fall off a couch", ActivityType.Watching),
 		new DiscordActivity("sully's albion rant", ActivityType.ListeningTo),
-		new DiscordActivity("chimpo's infernal kpop", ActivityType.ListeningTo),
+		new DiscordActivity("chimpo's cursed kpop", ActivityType.ListeningTo),
 		new DiscordActivity("smooth eldritch blast", ActivityType.ListeningTo),
 		new DiscordActivity("distant bonking", ActivityType.ListeningTo)
 	};

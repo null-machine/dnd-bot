@@ -2,6 +2,7 @@
 - statistics message
 - per player macros
 - regenerate token
+- spell lookup
 
 # changelog
 - replies to roll commands
