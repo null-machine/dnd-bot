@@ -2,6 +2,7 @@
 - statistics message
 - per player macros
 - spell lookup
+- x prefix only works to the right
 
 # guide
 - roll syntax is `roll <dice> <modifier> <repeats>`

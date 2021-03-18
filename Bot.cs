@@ -15,6 +15,7 @@ class Bot {
 	string[] rollPrefixes = new string[] { "roll ", "please roll ", "r " };
 	Random random = new Random();
 	Random funRandom = new Random();
+	Macros macros;
 	
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -25,10 +26,21 @@ class Bot {
 		Main().GetAwaiter().GetResult();
 	}
 	
+	internal Bot(string token, Macros macros) {
+		DiscordConfiguration config = new DiscordConfiguration() {
+			Token = token,
+			TokenType = TokenType.Bot
+		};
+		client = new DiscordClient(config);
+		this.macros = macros;
+		Main().GetAwaiter().GetResult();
+	}
+	
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
 		if (e.Author.Equals(client.CurrentUser)) return null;
 		Log(e.Message);
 		if (ParsePing(e.Message)) return null;
+		// if (macros.ParseRegister(e.Message)) return null;
 		if (ParseRoll(e.Message)) return null;
 		return null;
 	}
@@ -56,11 +68,14 @@ class Bot {
 				break;
 			}
 		}
-		string[] args = content.Replace('+', ' ').Split(' ');
+		List<string> args = content.Replace('+', ' ').Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+		
+		// if (forced) here is where the macros does its fancy swaps
+		
 		List<Dice> dices = new List<Dice>();
-		bool[] parsables = new bool[args.Length];
+		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
 		int mod = 0, repeats = 0, parse;
-		for (int i = 0; i < args.Length; i++) {
+		for (int i = 0; i < args.Count; i++) {
 			Dice dice = ParseDice(args[i]);
 			if (string.IsNullOrEmpty(args[i])) {
 				parsables[i] = true;
