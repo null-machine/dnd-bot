@@ -22,19 +22,19 @@ public class Macros {
 		return macros[id.ToString()];
 	}
 	
-	internal bool ParseRegister(DiscordMessage message, List<string> args) {
-		if (!args[0].Equals("register") || args.Count < 2) return false;
+	internal bool ParseSave(DiscordMessage message, List<string> args) {
+		if (!(args[0].Equals("save") || args[0].Equals("s")) || args.Count < 2) return false;
 		DiscordMessageBuilder reply;
 		string content;
 		Dictionary<string, string[]> userMacros = GetMacros(message.Author.Id);
 		if (args.Count == 2) {
 			bool removed = userMacros.ContainsKey(args[1]);
-			content = removed ? $":firecracker: `{args[1]}` → `{string.Join(' ', userMacros[args[1]])}` has been unregistered." : $":grey_question: `{args[1]}` was not found, so no changes have been made.";
+			content = removed ? $":firecracker: `{args[1]}` → `{string.Join(' ', userMacros[args[1]])}` has been deleted." : $":grey_question: `{args[1]}` was not found, so no changes have been made.";
 			userMacros.Remove(args[1]);
 		} else {
 			if (userMacros.ContainsKey(args[1])) userMacros.Remove(args[1]);
 			userMacros.Add(args[1], args.Skip(2).ToArray());
-			content = $":writing_hand: `{args[1]}` → `{string.Join(' ', userMacros[args[1]])}` has been registered.";
+			content = $":writing_hand: `{args[1]}` → `{string.Join(' ', userMacros[args[1]])}` has been saved.";
 		}
 		reply = new DiscordMessageBuilder();
 		reply.Content = content;

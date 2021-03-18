@@ -16,15 +16,6 @@ class Bot {
 	Random funRandom = new Random();
 	Macros macros;
 	
-	// internal Bot(string token) {
-	// 	DiscordConfiguration config = new DiscordConfiguration() {
-	// 		Token = token,
-	// 		TokenType = TokenType.Bot
-	// 	};
-	// 	client = new DiscordClient(config);
-	// 	Main().GetAwaiter().GetResult();
-	// }
-	
 	internal Bot(string token, Macros macros) {
 		DiscordConfiguration config = new DiscordConfiguration() {
 			Token = token,
@@ -44,7 +35,7 @@ class Bot {
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
 		if (ParsePing(e.Message, args)) return null;
-		if (macros.ParseRegister(e.Message, args)) return null;
+		if (macros.ParseSave(e.Message, args)) return null;
 		if (ParseRoll(e.Message, args)) return null;
 		return null;
 	}
