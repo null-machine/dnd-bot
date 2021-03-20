@@ -1,9 +1,5 @@
 # TODO
-- statistics message
-- per player macros
-- spell lookup
 - x prefix only works to the right
-- say number truncated in the ...
 
 # guide
 - roll syntax is `roll <dice> <modifier> <repeats>`
