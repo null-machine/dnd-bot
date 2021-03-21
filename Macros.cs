@@ -24,32 +24,61 @@ public class Macros {
 	
 	internal bool ParseSave(DiscordMessage message, List<string> args) {
 		if (!(args[0].Equals("save") || args[0].Equals("s")) || args.Count < 2) return false;
+		Dictionary<string, string[]> macros = GetMacros(message.Author.Id);
 		DiscordMessageBuilder reply;
 		string content;
-		Dictionary<string, string[]> userMacros = GetMacros(message.Author.Id);
 		if (args.Count == 2) {
-			bool removed = userMacros.ContainsKey(args[1]);
-			content = removed ? $":firecracker: `{args[1]}` → `{string.Join(' ', userMacros[args[1]])}` has been deleted." : $":grey_question: `{args[1]}` was not found, so no changes have been made.";
-			userMacros.Remove(args[1]);
+			bool removed = macros.ContainsKey(args[1]);
+			content = removed ? $":firecracker: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has been deleted." : $":grey_question: `{args[1]}` was not found, so no changes have been made.";
+			macros.Remove(args[1]);
 		} else {
-			if (userMacros.ContainsKey(args[1])) userMacros.Remove(args[1]);
-			userMacros.Add(args[1], args.Skip(2).ToArray());
-			content = $":writing_hand: `{args[1]}` → `{string.Join(' ', userMacros[args[1]])}` has been saved.";
+			string[] oldMacro = null;
+			if (macros.ContainsKey(args[1])) {
+				oldMacro = macros[args[1]];
+				macros.Remove(args[1]);
+			}
+			macros.Add(args[1], args.Skip(2).ToArray());
+			if (oldMacro != null) {
+				content = $":writing_hand: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has overwritten `{args[1]}` → `{string.Join(' ', oldMacro)}`.";
+			} else content = $":writing_hand: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has been saved.";
 		}
 		reply = new DiscordMessageBuilder();
 		reply.Content = content;
 		reply.WithReply(message.Id);
 		message.RespondAsync(reply);
-		Loader.SerializeMacros(macros);
+		Loader.SerializeMacros(this.macros);
+		return true;
+	}
+	
+	internal bool ParseView(DiscordMessage message, List<string> args) {
+		if (!(args[0].Equals("view") || args[0].Equals("v"))) return false;
+		Dictionary<string, string[]> macros = GetMacros(message.Author.Id);
+		StringBuilder content = new StringBuilder();
+		if (args.Count == 2) {
+			if (macros.ContainsKey(args[1])) content.Append($":mag: `{args[1]}` → `{string.Join(' ', macros[args[1]])}`");
+			else content.Append($":mag: `{args[1]}` was not found.");
+		} else if (args.Count == 1) {
+			if (macros.Count == 0) content.Append($":mag: {message.Author.Username} has saved no rolls.");
+			else {
+				content.Append($":mag: {message.Author.Username} has saved {macros.Count} rolls:\n");
+				foreach (KeyValuePair<string, string[]> macro in macros) {
+					content.Append($"`{macro.Key}` → `{string.Join(' ', macro.Value)}`\n");
+				}
+			}
+		} else return false;
+		DiscordMessageBuilder reply = new DiscordMessageBuilder();
+		reply.Content = content.ToString();
+		reply.WithReply(message.Id);
+		message.RespondAsync(reply);
 		return true;
 	}
 	
 	internal void Replace(ulong user, List<string> args) {
 		int count = args.Count;
-		Dictionary<string, string[]> userMacros = GetMacros(user);
+		Dictionary<string, string[]> macros = GetMacros(user);
 		for (int i = args.Count - 1; i >= 0; i--) {
-			if (userMacros.ContainsKey(args[i])) {
-				args.AddRange(macros[user.ToString()][args[i]]);
+			if (macros.ContainsKey(args[i])) {
+				args.AddRange(this.macros[user.ToString()][args[i]]);
 				args.RemoveAt(i);
 			}
 		}

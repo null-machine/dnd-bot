@@ -35,6 +35,7 @@ class Bot {
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
 		if (ParsePing(e.Message, args)) return null;
+		if (macros.ParseView(e.Message, args)) return null;
 		if (macros.ParseSave(e.Message, args)) return null;
 		if (ParseRoll(e.Message, args)) return null;
 		return null;

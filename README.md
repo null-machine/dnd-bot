@@ -25,3 +25,12 @@
 - `roll 1d20 +6` or `r 6` rolls a skill check with a +6 modifier
 - `roll 2d6 +5 x3` or `2d6 5 x3` rolls greatsword damage with a +5 modifier three times
 - `roll 1d20 1d4 -3 x2` or `d20 d4 -3 x` rolls a stealth check with a -3 modifier, guidance, and disadvantage
+
+# saved rolls
+- each user has their own set of saved rolls
+- saving syntax is `save <name> <roll>`
+- each time `<name>` appears in a roll command, it will be replaced by `<roll>`
+- e.g. calling `save damage 2d6 +5` and then `roll damage x2` is the same as calling `roll 2d6 +5 x2`
+- `save <name>` without `<roll>` deletes that saved roll if it exists
+- `view <name>` views that saved roll if it exists
+- `view` without `<name>` views all saved rolls for that user
