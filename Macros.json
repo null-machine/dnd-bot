@@ -4,9 +4,9 @@
       "d20",
       "2"
     ],
-    "acrobatics": [
-      "d20",
-      "6"
+    "deflect": [
+      "d10",
+      "11"
     ],
     "animal": [
       "d20",
@@ -29,8 +29,7 @@
       "-2"
     ],
     "insight": [
-      "d20",
-      "0"
+      "d20"
     ],
     "intimidation": [
       "d20",
@@ -77,8 +76,8 @@
       "0"
     ],
     "damage": [
-      "d6",
-      "5"
+      "2d6",
+      "6"
     ],
     "lure": [
       "2d8"
@@ -89,7 +88,7 @@
     ],
     "attack": [
       "d20",
-      "8"
+      "10"
     ],
     "gwmattack": [
       "d20",
@@ -118,6 +117,105 @@
     "chasave": [
       "d20",
       "9"
+    ],
+    "slingdamage": [
+      "d6",
+      "5"
+    ],
+    "acro": [
+      "d20",
+      "6"
+    ],
+    "rapier": [
+      "d8",
+      "5"
     ]
-  }
+  },
+  "97412644943691776": {
+    "strength": [
+      "-2"
+    ],
+    "dexterity": [
+      "2"
+    ],
+    "constitution": [
+      "-2"
+    ],
+    "intelligence": [
+      "4"
+    ],
+    "wisdom": [
+      "-1"
+    ],
+    "charisma": [
+      "5"
+    ],
+    "acrobatics": [
+      "2"
+    ],
+    "animal": [
+      "-1"
+    ],
+    "arcana": [
+      "7"
+    ],
+    "athletics": [
+      "-2"
+    ],
+    "deception": [
+      "8"
+    ],
+    "history": [
+      "7"
+    ],
+    "insight": [
+      "-1"
+    ],
+    "intimidation": [
+      "5"
+    ],
+    "investigation": [
+      "7"
+    ],
+    "medicine": [
+      "-1"
+    ],
+    "nature": [
+      "4"
+    ],
+    "perception": [
+      "-1"
+    ],
+    "performance": [
+      "5"
+    ],
+    "persuasion": [
+      "5"
+    ],
+    "religion": [
+      "4"
+    ],
+    "sleight": [
+      "2"
+    ],
+    "sleath": [
+      "2"
+    ],
+    "survival": [
+      "-1"
+    ],
+    "eldritch": [
+      "8",
+      "x2"
+    ]
+  },
+  "98034431599575040": {
+    "attack": [
+      "8",
+      "x4"
+    ]
+  },
+  "146403059566772225": {},
+  "383425504243613696": {},
+  "228995491088564224": {}
 }

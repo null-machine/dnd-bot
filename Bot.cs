@@ -60,6 +60,11 @@ class Bot {
 			forced = true;
 			args.RemoveAt(0);
 		}
+		if (args.Count == 1) {
+			Dice singleDice = ParseDice(args[0]);
+			if (singleDice != null) forced = true;
+		}
+		
 		if (forced) macros.Replace(message.Author.Id, args);
 		
 		List<Dice> dices = new List<Dice>();

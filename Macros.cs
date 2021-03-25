@@ -23,7 +23,7 @@ public class Macros {
 	}
 	
 	internal bool ParseSave(DiscordMessage message, List<string> args) {
-		if (!(args[0].Equals("save") || args[0].Equals("s")) || args.Count < 2) return false;
+		if (!(args[0].Equals("save") || args.Count < 2) return false;
 		Dictionary<string, string[]> macros = GetMacros(message.Author.Id);
 		DiscordMessageBuilder reply;
 		string content;

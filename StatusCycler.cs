@@ -23,9 +23,8 @@ class StatusCycler {
 		new DiscordActivity("the world burn", ActivityType.Watching),
 		new DiscordActivity("plans unravel", ActivityType.Watching),
 		
-		new DiscordActivity("seri fall off a couch", ActivityType.Watching),
-		new DiscordActivity("sully's albion rant", ActivityType.ListeningTo),
-		new DiscordActivity("chimpo's cursed kpop", ActivityType.ListeningTo),
+		new DiscordActivity("someone fall off a couch", ActivityType.Watching),
+		new DiscordActivity("stuff being punched", ActivityType.ListeningTo),
 		new DiscordActivity("smooth eldritch blast", ActivityType.ListeningTo),
 		new DiscordActivity("distant bonking", ActivityType.ListeningTo)
 	};
