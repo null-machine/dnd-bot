@@ -109,13 +109,13 @@ class Bot {
 		if (multiple) text.Append("**Results:** ");
 		else text.Append("**Result:** ");
 		if (repeats <= 20) {
-			text.Append($"{string.Join(", ", results.Select(i => i.ToString()).ToArray())}\n");
+			text.Append($"{string.Join(", ", results.Select(i => i.ToString()).ToArray())} ");
 		} else {
-			text.Append($"{string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ...\n");
+			text.Append($"{string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ... ");
 		}
 		int total = results.Sum(i => i.value);
 		BoldInt displayTotal = new BoldInt(total, total == roll.min * repeats || total == roll.max * repeats);
-		if (multiple) text.Append($"**Total:** {displayTotal}");
+		if (multiple) text.Append($"| **Total:** {displayTotal}");
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 			Content = text.ToString()
 		};
