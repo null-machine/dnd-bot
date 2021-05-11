@@ -39,8 +39,8 @@ public class Macros {
 			}
 			macros.Add(args[1], args.Skip(2).ToArray());
 			if (oldMacro != null) {
-				content = $":writing_hand: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has overwritten `{args[1]}` → `{string.Join(' ', oldMacro)}`.";
-			} else content = $":writing_hand: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has been saved.";
+				content = $":memo: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has overwritten `{args[1]}` → `{string.Join(' ', oldMacro)}`.";
+			} else content = $":memo: `{args[1]}` → `{string.Join(' ', macros[args[1]])}` has been saved.";
 		}
 		reply = new DiscordMessageBuilder();
 		reply.Content = content;

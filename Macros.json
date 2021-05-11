@@ -4,11 +4,11 @@
       "d20",
       "5"
     ],
-    "deflect": [
-      "d10",
-      "11"
+    "acrobatics": [
+      "d20",
+      "8"
     ],
-    "animal": [
+    "animal-handling": [
       "d20",
       "3"
     ],
@@ -58,7 +58,7 @@
     ],
     "persuasion": [
       "d20",
-      "9"
+      "0"
     ],
     "religion": [
       "d20",
@@ -76,6 +76,34 @@
       "d20",
       "3"
     ],
+    "strsave": [
+      "d20",
+      "2"
+    ],
+    "dexsave": [
+      "d20",
+      "8"
+    ],
+    "consave": [
+      "d20",
+      "1"
+    ],
+    "intsave": [
+      "d20",
+      "-2"
+    ],
+    "wissave": [
+      "d20",
+      "3"
+    ],
+    "chasave": [
+      "d20",
+      "0"
+    ],
+    "hit-dice": [
+      "d8",
+      "1"
+    ],
     "damage": [
       "d6",
       "5"
@@ -84,43 +112,27 @@
       "d20",
       "8"
     ],
-    "strsave": [
-      "d20",
-      "-2"
+    "virtue": [
+      "d4",
+      "6"
     ],
-    "dexsave": [
-      "d20",
+    "deflect": [
+      "d10",
+      "12"
+    ],
+    "ki-heal": [
+      "d6",
+      "3"
+    ],
+    "potion": [
+      "2d4",
       "2"
     ],
-    "consave": [
-      "d20",
-      "0"
-    ],
-    "intsave": [
-      "d20",
-      "-2"
-    ],
-    "wissave": [
-      "d20",
-      "4"
-    ],
-    "chasave": [
-      "d20",
-      "9"
-    ],
-    "slingdamage": [
-      "d6",
-      "5"
-    ],
-    "acrobatics": [
-      "d20",
-      "8"
-    ],
-    "rapier": [
+    "cure-wounds": [
       "d8",
-      "5"
+      "6"
     ],
-    "virtue": [
+    "healing-word": [
       "d4",
       "6"
     ]
