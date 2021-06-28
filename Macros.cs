@@ -51,7 +51,7 @@ public class Macros {
 	}
 	
 	internal bool ParseView(DiscordMessage message, List<string> args) {
-		if (!(args[0].Equals("view") || args[0].Equals("v"))) return false;
+		if (!args[0].Equals("view")) return false;
 		Dictionary<string, string[]> macros = GetMacros(message.Author.Id);
 		StringBuilder content = new StringBuilder();
 		if (args.Count == 2) {

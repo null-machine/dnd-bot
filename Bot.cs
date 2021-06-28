@@ -12,7 +12,7 @@ class Bot {
 	DiscordClient client;
 	DiscordChannel relay;
 	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
-	Random random = new Random();
+	Roller random = new Roller();
 	Random funRandom = new Random();
 	Macros macros;
 	
@@ -35,8 +35,9 @@ class Bot {
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
 		if (ParsePing(e.Message, args)) return null;
-		if (macros.ParseView(e.Message, args)) return null;
-		if (macros.ParseSave(e.Message, args)) return null;
+		if (ParseBias(e.Message, args)) return null;
+		// if (macros.ParseView(e.Message, args)) return null;
+		// if (macros.ParseSave(e.Message, args)) return null;
 		if (ParseRoll(e.Message, args)) return null;
 		return null;
 	}
@@ -70,6 +71,7 @@ class Bot {
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
 		int mod = 0, repeats = 0, parse;
+		bool foundSpecial = false;
 		for (int i = 0; i < args.Count; i++) {
 			Dice dice = ParseDice(args[i]);
 			if (string.IsNullOrEmpty(args[i])) {
@@ -77,6 +79,7 @@ class Bot {
 			} else if (dice != null) {
 				dices.Add(dice);
 				parsables[i] = true;
+				foundSpecial = true;
 			} else if (int.TryParse(args[i], out parse)) {
 				mod += parse;
 				parsables[i] = true;
@@ -85,12 +88,13 @@ class Bot {
 				if (parse != -1) {
 					repeats += parse;
 					parsables[i] = true;
+					foundSpecial = true;
 				}
 			}
 		}
 		repeats = repeats < 1 ? 1 : repeats;
 		if (dices.Count == 0) dices.Add(new Dice(1, 20, random));
-		if (forced || (parsables.All(i => i) && parsables.Length > 1)) {
+		if (forced || (parsables.All(i => i) && parsables.Length > 1 && foundSpecial)) {
 			PrintRoll(message, new Roll(dices, mod), repeats);
 			return true;
 		} else return false;
@@ -102,7 +106,7 @@ class Bot {
 		bool truncated = false, multiple = repeats > 1;
 		for (int i = 0; i < repeats; i++) {
 			results[i] = roll.Reroll();
-			if (i < 4) text.Append($"{roll}\n");
+			if (i < 6) text.Append($"{roll}\n");
 			else truncated = true;
 		}
 		if (truncated) text.Append("...\n");
@@ -146,6 +150,22 @@ class Bot {
 		if (!args[0].Equals("boop")) return false;
 		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
+		return true;
+	}
+	
+	bool ParseBias(DiscordMessage message, List<string> args) {
+		double bias = 0.0;
+		if (!args[0].Equals("bias") || !double.TryParse(args[1], out bias)) return false;
+		random.bias = bias;
+		string content = "";
+		if (bias < 0.0) content = ":scales: High rolls will be less common.";
+		else if (bias > 0.0) content = ":scales: Low rolls will be less common.";
+		else content = ":scales: Rolls will have equal probability.";
+		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+			Content = content
+		};
+		reply.WithReply(message.Id);
+		message.RespondAsync(reply);
 		return true;
 	}
 }
