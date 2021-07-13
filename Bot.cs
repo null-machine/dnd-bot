@@ -12,7 +12,7 @@ class Bot {
 	DiscordClient client;
 	DiscordChannel relay;
 	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
-	Roller random = new Roller();
+	Random random = new Random();
 	Random funRandom = new Random();
 	Macros macros;
 	
@@ -35,7 +35,7 @@ class Bot {
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
 		if (ParsePing(e.Message, args)) return null;
-		if (ParseBias(e.Message, args)) return null;
+		// if (ParseBias(e.Message, args)) return null;
 		// if (macros.ParseView(e.Message, args)) return null;
 		// if (macros.ParseSave(e.Message, args)) return null;
 		if (ParseRoll(e.Message, args)) return null;
@@ -153,19 +153,19 @@ class Bot {
 		return true;
 	}
 	
-	bool ParseBias(DiscordMessage message, List<string> args) {
-		double bias = 0.0;
-		if (!args[0].Equals("bias") || !double.TryParse(args[1], out bias)) return false;
-		random.bias = bias;
-		string content = "";
-		if (bias < 0.0) content = ":scales: High rolls will be less common.";
-		else if (bias > 0.0) content = ":scales: Low rolls will be less common.";
-		else content = ":scales: Rolls will have equal probability.";
-		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-			Content = content
-		};
-		reply.WithReply(message.Id);
-		message.RespondAsync(reply);
-		return true;
-	}
+	// bool ParseBias(DiscordMessage message, List<string> args) {
+	// 	double bias = 0.0;
+	// 	if (!args[0].Equals("bias") || !double.TryParse(args[1], out bias)) return false;
+	// 	random.bias = bias;
+	// 	string content = "";
+	// 	if (bias < 0.0) content = ":scales: High rolls will be less common.";
+	// 	else if (bias > 0.0) content = ":scales: Low rolls will be less common.";
+	// 	else content = ":scales: Rolls will have equal probability.";
+	// 	DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+	// 		Content = content
+	// 	};
+	// 	reply.WithReply(message.Id);
+	// 	message.RespondAsync(reply);
+	// 	return true;
+	// }
 }
