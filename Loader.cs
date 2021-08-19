@@ -11,8 +11,8 @@ class Loader {
 	
 	public static void Main(string[] args) {
 		string token = JsonSerializer.Deserialize<Data>(File.ReadAllText("Token")).Token;
-		Macros macros = new Macros(JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string[]>>>(File.ReadAllText("Macros.json"), options));
-		new Bot(token, macros);
+		// Macros macros = new Macros(JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string[]>>>(File.ReadAllText("Macros.json"), options));
+		new Bot(token);
 	}
 	
 	internal static void SerializeMacros(Dictionary<string, Dictionary<string, string[]>> macros) {

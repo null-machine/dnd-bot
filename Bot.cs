@@ -14,15 +14,15 @@ class Bot {
 	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
 	Random random = new Random();
 	Random funRandom = new Random();
-	Macros macros;
+	// Macros macros;
 	
-	internal Bot(string token, Macros macros) {
+	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
 			Token = token,
 			TokenType = TokenType.Bot
 		};
 		client = new DiscordClient(config);
-		this.macros = macros;
+		// this.macros = macros;
 		Main().GetAwaiter().GetResult();
 	}
 	
@@ -57,7 +57,7 @@ class Bot {
 	
 	bool ParseRoll(DiscordMessage message, List<string> args) {
 		bool forced = false;
-		if (args[0].Equals("r") || args[0].Equals("roll")) {
+		if (args[0].Equals("roll")) {
 			forced = true;
 			args.RemoveAt(0);
 		}
@@ -66,7 +66,7 @@ class Bot {
 			if (singleDice != null) forced = true;
 		}
 		
-		if (forced) macros.Replace(message.Author.Id, args);
+		// if (forced) macros.Replace(message.Author.Id, args);
 		
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
