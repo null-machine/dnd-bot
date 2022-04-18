@@ -1,3 +1,5 @@
+https://discord.com/api/oauth2/authorize?client_id=551378788286464000&scope=bot
+
 # guide
 - roll syntax is `roll <dice> <modifier> <repeats>`
 - `<dice>` is the number and size of the dice to roll, e.g. `2d6`, `1d20`
