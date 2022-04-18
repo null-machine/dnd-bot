@@ -32,12 +32,14 @@ class Bot {
 		if (args.Count == 0) return null;
 		if (ParsePing(message, args)) return null;
 		if (ParseChain(message, args)) return null;
+		// if (ParseMusic)
 		return null;
 	}
 
 	async Task Main() {
 		await client.ConnectAsync();
 		client.MessageCreated += MessageCreated;
+		// client.onuserleft += check if any left, if not, leave
 		// new StatusCycler(client, funRandom);
 		await Task.Delay(-1);
 	}
@@ -55,7 +57,7 @@ class Bot {
 
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Count];
-		int mod = 0, repeats = 0, parse;
+		int mod = 0, repeats = 0, x;
 		bool foundSpecial = false;
 		for (int i = 0; i < args.Count; i++) {
 			Dice dice = ParseDice(args[i]);
@@ -65,13 +67,13 @@ class Bot {
 				dices.Add(dice);
 				parsables[i] = true;
 				foundSpecial = true;
-			} else if (int.TryParse(args[i], out parse)) {
-				mod += parse;
+			} else if (int.TryParse(args[i], out x)) {
+				mod += x;
 				parsables[i] = true;
 			} else if (args[i].Contains('x')) {
-				parse = ParseRepeats(args[i]);
-				if (parse != -1) {
-					repeats += parse;
+				x = ParseRepeats(args[i]);
+				if (x != -1) {
+					repeats += x;
 					parsables[i] = true;
 					foundSpecial = true;
 				}
@@ -87,7 +89,10 @@ class Bot {
 
 	void PrintChain(DiscordMessage message, DiceChain chain, int repeats) {
 		string user = $"{message.Author.Username}#{message.Author.Discriminator}";
-		if (!userRandoms.ContainsKey(user)) userRandoms.Add(user, new Random());
+		if (!userRandoms.ContainsKey(user)) {
+			userRandoms.Add(user, new KarmicRandom());
+			// Console.WriteLine($"new rng assigned: {user}");
+		}
 		Random random = userRandoms[user];
 		StringBuilder text = new StringBuilder();
 		BoldInt[] results = new BoldInt[repeats];
