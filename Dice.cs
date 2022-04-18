@@ -8,16 +8,14 @@ class Dice {
 	internal float Average => count + count * size * 0.5f;
 	StringBuilder data = new StringBuilder();
 	BoldInt[] results;
-	Random random;
 
-	internal Dice(int count, int size, Random random) {
+	internal Dice(int count, int size) {
 		this.count = count;
 		this.size = size;
-		this.random = random;
 		results = new BoldInt[count];
 	}
 
-	internal BoldInt Reroll() {
+	internal BoldInt Roll(Random random) {
 		int result = 0;
 		for (int i = 0; i < count; i++) {
 			int roll = random.Next(size) + 1;

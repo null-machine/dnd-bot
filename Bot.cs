@@ -10,12 +10,9 @@ using DSharpPlus.EventArgs;
 class Bot {
 
 	DiscordClient client;
-	DiscordChannel relay;
 	string[] hearts = new string[] { ":blue_heart:", ":yellow_heart:", ":heart:" };
-	Random random = new Random();
 	Random funRandom = new Random();
-	Dictionary<string, Random> userRandoms;
-	// Macros macros;
+	Dictionary<string, Random> userRandoms = new Dictionary<string, Random>();
 
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -23,33 +20,29 @@ class Bot {
 			TokenType = TokenType.Bot
 		};
 		client = new DiscordClient(config);
-		// this.macros = macros;
 		Main().GetAwaiter().GetResult();
 	}
 
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
 		if (e.Author.Equals(client.CurrentUser)) return null;
-		Message message = e.Message;
+		DiscordMessage message = e.Message;
 		string line = message.Content.Replace('+', ' ').ToLower();
 		line = new string(line.Where(i => !char.IsPunctuation(i) || i == '-').ToArray());
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
 		if (ParsePing(message, args)) return null;
-		// if (macros.ParseView(e.Message, args)) return null;
-		// if (macros.ParseSave(e.Message, args)) return null;
-		if (ParseRoll(message, args)) return null;
+		if (ParseChain(message, args)) return null;
 		return null;
 	}
 
 	async Task Main() {
 		await client.ConnectAsync();
-		relay = await client.GetChannelAsync(782245881625182269);
 		client.MessageCreated += MessageCreated;
-		new StatusCycler(client, funRandom);
+		// new StatusCycler(client, funRandom);
 		await Task.Delay(-1);
 	}
 
-	bool ParseRoll(DiscordMessage message, List<string> args) {
+	bool ParseChain(DiscordMessage message, List<string> args) {
 		bool forced = false;
 		if (args[0].Equals("roll")) {
 			forced = true;
@@ -61,7 +54,7 @@ class Bot {
 		}
 
 		List<Dice> dices = new List<Dice>();
-		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
+		bool[] parsables = new bool[args.Count];
 		int mod = 0, repeats = 0, parse;
 		bool foundSpecial = false;
 		for (int i = 0; i < args.Count; i++) {
@@ -85,20 +78,23 @@ class Bot {
 			}
 		}
 		repeats = repeats < 1 ? 1 : repeats;
-		if (dices.Count == 0) dices.Add(new Dice(1, 20, random));
+		if (dices.Count == 0) dices.Add(new Dice(1, 20));
 		if (forced || (parsables.All(i => i) && parsables.Length > 1 && foundSpecial)) {
-			PrintRoll(message, new Roll(dices, mod), repeats);
+			PrintChain(message, new DiceChain(dices, mod), repeats);
 			return true;
 		} else return false;
 	}
 
-	void PrintRoll(DiscordMessage message, Roll roll, int repeats) {
+	void PrintChain(DiscordMessage message, DiceChain chain, int repeats) {
+		string user = $"{message.Author.Username}#{message.Author.Discriminator}";
+		if (!userRandoms.ContainsKey(user)) userRandoms.Add(user, new Random());
+		Random random = userRandoms[user];
 		StringBuilder text = new StringBuilder();
 		BoldInt[] results = new BoldInt[repeats];
 		bool truncated = false, multiple = repeats > 1;
 		for (int i = 0; i < repeats; i++) {
-			results[i] = roll.Reroll();
-			if (i < 6) text.Append($"{roll}\n");
+			results[i] = chain.Roll(random);
+			if (i < 6) text.Append($"{chain}\n");
 			else truncated = true;
 		}
 		if (truncated) text.Append("...\n");
@@ -110,7 +106,7 @@ class Bot {
 			text.Append($"{string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ... ");
 		}
 		int total = results.Sum(i => i.value);
-		BoldInt displayTotal = new BoldInt(total, total == roll.min * repeats || total == roll.max * repeats);
+		BoldInt displayTotal = new BoldInt(total, total == chain.min * repeats || total == chain.max * repeats);
 		if (multiple) text.Append($"| **Total:** {displayTotal}");
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 			Content = text.ToString()
@@ -123,9 +119,9 @@ class Bot {
 		string[] splits = input.Split('d');
 		if (splits.Length != 2) return null;
 		int repeats = 0, size = 0;
-		if (input.StartsWith("d") && int.TryParse(splits[1], out size)) return new Dice(1, size, random);
+		if (input.StartsWith("d") && int.TryParse(splits[1], out size)) return new Dice(1, size);
 		if (!(int.TryParse(splits[0], out repeats) && int.TryParse(splits[1], out size))) return null;
-		return new Dice(repeats, size, random);
+		return new Dice(repeats, size);
 	}
 
 	int ParseRepeats(string input) {
@@ -144,20 +140,4 @@ class Bot {
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
 	}
-
-	// bool ParseBias(DiscordMessage message, List<string> args) {
-	// 	double bias = 0.0;
-	// 	if (!args[0].Equals("bias") || !double.TryParse(args[1], out bias)) return false;
-	// 	random.bias = bias;
-	// 	string content = "";
-	// 	if (bias < 0.0) content = ":scales: High rolls will be less common.";
-	// 	else if (bias > 0.0) content = ":scales: Low rolls will be less common.";
-	// 	else content = ":scales: Rolls will have equal probability.";
-	// 	DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-	// 		Content = content
-	// 	};
-	// 	reply.WithReply(message.Id);
-	// 	message.RespondAsync(reply);
-	// 	return true;
-	// }
 }
