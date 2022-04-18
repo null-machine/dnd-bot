@@ -11,9 +11,10 @@ class Bot {
 
 	DiscordClient client;
 	DiscordChannel relay;
-	string[] hearts = new string[] { ":sparkling_heart:", ":revolving_hearts:", ":blue_heart:" };
+	string[] hearts = new string[] { ":blue_heart:", ":yellow_heart:", ":heart:" };
 	Random random = new Random();
 	Random funRandom = new Random();
+	Dictionary<string, Random> userRandoms;
 	// Macros macros;
 
 	internal Bot(string token) {
@@ -28,17 +29,15 @@ class Bot {
 
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
 		if (e.Author.Equals(client.CurrentUser)) return null;
-		Log(e.Message);
-
-		string line = e.Message.Content.Replace('+', ' ').ToLower();
+		Message message = e.Message;
+		string line = message.Content.Replace('+', ' ').ToLower();
 		line = new string(line.Where(i => !char.IsPunctuation(i) || i == '-').ToArray());
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
-		if (ParsePing(e.Message, args)) return null;
-		// if (ParseBias(e.Message, args)) return null;
+		if (ParsePing(message, args)) return null;
 		// if (macros.ParseView(e.Message, args)) return null;
 		// if (macros.ParseSave(e.Message, args)) return null;
-		if (ParseRoll(e.Message, args)) return null;
+		if (ParseRoll(message, args)) return null;
 		return null;
 	}
 
@@ -48,11 +47,6 @@ class Bot {
 		client.MessageCreated += MessageCreated;
 		new StatusCycler(client, funRandom);
 		await Task.Delay(-1);
-	}
-
-	void Log(DiscordMessage message) {
-		if (message.Channel.Name != null || message.Channel.Equals(relay)) return;
-		relay.SendMessageAsync($"{message.Author.Username}#{message.Author.Discriminator}: {message.Content}");
 	}
 
 	bool ParseRoll(DiscordMessage message, List<string> args) {
@@ -65,8 +59,6 @@ class Bot {
 			Dice singleDice = ParseDice(args[0]);
 			if (singleDice != null) forced = true;
 		}
-
-		// if (forced) macros.Replace(message.Author.Id, args);
 
 		List<Dice> dices = new List<Dice>();
 		bool[] parsables = new bool[args.Count]; // TODO can be swapped for a count
@@ -147,7 +139,7 @@ class Bot {
 	}
 
 	bool ParsePing(DiscordMessage message, List<string> args) {
-		if (!args[0].Equals("boop")) return false;
+		if (!args[0].Equals("boop") && !args[0].Equals("ping")) return false;
 		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
