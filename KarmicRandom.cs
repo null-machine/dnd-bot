@@ -14,14 +14,10 @@ class KarmicRandom : Random {
 		if (Math.Abs(karma) >= threshold) {
 			if (karma > 0) {
 				karma = -1;
-				int temp = maxValue / 2 + base.Next(maxValue / 2);
-				Console.WriteLine($"karmic proc: {temp}");
-				return temp;
+				return maxValue / 2 + base.Next(maxValue / 2);
 			} else if (karma < 0) {
 				karma = 1;
-				int temp = base.Next(maxValue / 2);
-				Console.WriteLine($"karmic proc: {temp}");
-				return temp;
+				return base.Next(maxValue / 2);
 			}
 		}
 		int value = base.Next(maxValue);

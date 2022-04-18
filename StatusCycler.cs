@@ -13,18 +13,12 @@ class StatusCycler {
 		new DiscordActivity("God", ActivityType.Playing),
 		new DiscordActivity("with fire", ActivityType.Playing),
 		new DiscordActivity("mind games", ActivityType.Playing),
-		new DiscordActivity("with emotions", ActivityType.Playing),
-		new DiscordActivity("for the narrative", ActivityType.Playing),
 
-		new DiscordActivity("last words", ActivityType.ListeningTo),
 		new DiscordActivity("bad influences", ActivityType.ListeningTo),
-		new DiscordActivity("distant bonking", ActivityType.ListeningTo),
-		new DiscordActivity("muffled swearing", ActivityType.ListeningTo),
 
-		new DiscordActivity("plans unravel", ActivityType.Watching),
-		new DiscordActivity("people lose it", ActivityType.Watching),
 		new DiscordActivity("the world burn", ActivityType.Watching),
-		new DiscordActivity("prophecies come true", ActivityType.Watching)
+
+		new DiscordActivity("shenanigans", ActivityType.Competing),
 	};
 
 	DiscordClient client;
@@ -44,5 +38,10 @@ class StatusCycler {
 			await client.UpdateStatusAsync(statuses[index], UserStatus.Online);
 			await Task.Delay(300000 + random.Next(300000));
 		}
+	}
+
+	internal async Task Cycle(DiscordClient client, ReadyEventArgs e) {
+		index = (index + random.Next(statuses.Length - 1)) % statuses.Length;
+		await client.UpdateStatusAsync(statuses[index], UserStatus.Online);
 	}
 }

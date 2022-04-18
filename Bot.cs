@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.VoiceNext;
 
 class Bot {
 
@@ -32,16 +35,22 @@ class Bot {
 		if (args.Count == 0) return null;
 		if (ParsePing(message, args)) return null;
 		if (ParseChain(message, args)) return null;
-		// if (ParseMusic)
+		if (ParsePlay(message, e)) return null;
 		return null;
 	}
 
 	async Task Main() {
 		await client.ConnectAsync();
 		client.MessageCreated += MessageCreated;
+		// client.MessageCreated += ParsePlay;
+		client.Ready += Ready;
+		client.UseVoiceNext();
 		// client.onuserleft += check if any left, if not, leave
-		// new StatusCycler(client, funRandom);
 		await Task.Delay(-1);
+	}
+
+	async Task Ready(DiscordClient client, ReadyEventArgs e) {
+		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
 	}
 
 	bool ParseChain(DiscordMessage message, List<string> args) {
@@ -91,7 +100,6 @@ class Bot {
 		string user = $"{message.Author.Username}#{message.Author.Discriminator}";
 		if (!userRandoms.ContainsKey(user)) {
 			userRandoms.Add(user, new KarmicRandom());
-			// Console.WriteLine($"new rng assigned: {user}");
 		}
 		Random random = userRandoms[user];
 		StringBuilder text = new StringBuilder();
@@ -144,5 +152,65 @@ class Bot {
 		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
+	}
+
+	bool ParsePlay(DiscordMessage message, MessageCreateEventArgs e) {
+		if (message.Content.Length < 5 || message.Content.Substring(0, 5) != "play ") return false;
+		VoiceNextExtension voiceNext = client.GetVoiceNext();
+		DiscordVoiceState voiceState = ((DiscordMember)message.Author).VoiceState;
+		VoiceNextConnection voiceConnection = voiceNext.GetConnection(e.Guild);
+		if (voiceState == null) {
+			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+				Content = "Please join a voice channel."
+			};
+			reply.WithReply(message.Id);
+			message.RespondAsync(reply);
+			return true;
+		} else if (voiceConnection == null) {
+			// voiceConnection = await voiceNext.ConnectAsync(voiceState.Channel);
+			_ = Connect(voiceNext, voiceState, voiceConnection);
+		}
+
+		string filePath = message.Content.Substring(5);
+		if (!File.Exists($@"C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}")) {
+			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+				Content = "File does not exist."
+			};
+			reply.WithReply(message.Id);
+			message.RespondAsync(reply);
+			return true;
+		} else {
+			_ = Play(voiceConnection, filePath);
+		}
+		return true;
+	}
+
+	async Task Connect(VoiceNextExtension voice, DiscordVoiceState state, VoiceNextConnection connection) {
+		connection = await voice.ConnectAsync(state.Channel);
+	}
+
+	async Task Play(VoiceNextConnection connection, string filePath) {
+		while (connection.IsPlaying) await connection.WaitForPlaybackFinishAsync();
+
+		try {
+			await connection.SendSpeakingAsync(true);
+
+			var psi = new ProcessStartInfo
+			{
+				FileName = "ffmpeg.exe",
+				Arguments = $@"-i ""C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
+				RedirectStandardOutput = true,
+				UseShellExecute = false
+			};
+			var ffmpeg = Process.Start(psi);
+			var ffout = ffmpeg.StandardOutput.BaseStream;
+
+			var txStream = connection.GetTransmitSink();
+			await ffout.CopyToAsync(txStream);
+			await txStream.FlushAsync();
+			await connection.WaitForPlaybackFinishAsync();
+		} catch (Exception exc) {
+			Console.WriteLine(exc);
+		}
 	}
 }
