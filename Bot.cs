@@ -43,201 +43,201 @@ class Bot {
 
 	async Task Main() {
 		await client.ConnectAsync();
-		relay = await client.GetChannelAsync(1025151838158331924);
+		relay = await client.GetChannelAsync(1025223875304374274);
+		// relay = await client.GetChannelAsync(881599328639135754);
+
 		client.MessageCreated += MessageCreated;
 		// client.MessageCreated += ParsePlay;
 		client.Ready += Ready;
 		client.UseVoiceNext();
 		// client.onuserleft += check if any left, if not, leave
-		new Thread(delegate() {
-			DumpRelay();
-			}).Start();
-			await Task.Delay(-1);
-		}
+		new Thread(delegate() { DumpRelay(); }).Start();
+		
+		await Task.Delay(-1);
+	}
 
-		void DumpRelay() {
-			// while (true) {
-				try {
-					using (FileStream fileStream = File.Open("Relay.txt", FileMode.Open)) {
-						StreamReader reader = new StreamReader(fileStream);
-						string line;
-						while ((line = reader.ReadLine()) != null) {
-							relay.SendMessageAsync(line);
-							Thread.Sleep(1000);
-						}
-						fileStream.SetLength(0);
-						Console.WriteLine("###");
+	void DumpRelay() {
+		while (true) {
+			try {
+				using (FileStream fileStream = File.Open("Relay.txt", FileMode.Open)) {
+					StreamReader reader = new StreamReader(fileStream);
+					string line;
+					while ((line = reader.ReadLine()) != null) {
+						relay.SendMessageAsync(line);
+						Thread.Sleep(1000);
 					}
-				} catch {
-					Thread.Sleep(10000);
+					fileStream.SetLength(0);
 				}
-				Thread.Sleep(2000);
-			// }
-		}
-
-		async Task Ready(DiscordClient client, ReadyEventArgs e) {
-			await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
-		}
-
-		bool ParseChain(DiscordMessage message, List<string> args) {
-			bool forced = false;
-			if (args[0].Equals("roll")) {
-				forced = true;
-				args.RemoveAt(0);
+			} catch {
+				Thread.Sleep(10000);
 			}
-			if (args.Count == 1) {
-				Dice singleDice = ParseDice(args[0]);
-				if (singleDice != null) forced = true;
+			Thread.Sleep(2000);
+		}
+	}
+
+	async Task Ready(DiscordClient client, ReadyEventArgs e) {
+		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
+	}
+
+	bool ParseChain(DiscordMessage message, List<string> args) {
+		bool forced = false;
+		if (args[0].Equals("roll")) {
+			forced = true;
+			args.RemoveAt(0);
+		}
+		if (args.Count == 1) {
+			Dice singleDice = ParseDice(args[0]);
+			if (singleDice != null) forced = true;
+		}
+
+		List<Dice> dices = new List<Dice>();
+		bool[] parsables = new bool[args.Count];
+		int mod = 0, repeats = 0, x;
+		bool foundSpecial = false;
+		for (int i = 0; i < args.Count; i++) {
+			Dice dice = ParseDice(args[i]);
+			if (string.IsNullOrEmpty(args[i])) {
+				parsables[i] = true;
+			} else if (dice != null) {
+				dices.Add(dice);
+				parsables[i] = true;
+				foundSpecial = true;
+			} else if (int.TryParse(args[i], out x)) {
+				mod += x;
+				parsables[i] = true;
+				} else if (args[i].Contains('x')) {
+					x = ParseRepeats(args[i]);
+					if (x != -1) {
+						repeats += x;
+						parsables[i] = true;
+						foundSpecial = true;
+					}
+				}
+			}
+			repeats = repeats < 1 ? 1 : repeats;
+			if (dices.Count == 0) dices.Add(new Dice(1, 20));
+			if (forced || (parsables.All(i => i) && parsables.Length > 1 && foundSpecial)) {
+				PrintChain(message, new DiceChain(dices, mod), repeats);
+				return true;
+				} else return false;
 			}
 
-			List<Dice> dices = new List<Dice>();
-			bool[] parsables = new bool[args.Count];
-			int mod = 0, repeats = 0, x;
-			bool foundSpecial = false;
-			for (int i = 0; i < args.Count; i++) {
-				Dice dice = ParseDice(args[i]);
-				if (string.IsNullOrEmpty(args[i])) {
-					parsables[i] = true;
-				} else if (dice != null) {
-					dices.Add(dice);
-					parsables[i] = true;
-					foundSpecial = true;
-				} else if (int.TryParse(args[i], out x)) {
-					mod += x;
-					parsables[i] = true;
-					} else if (args[i].Contains('x')) {
-						x = ParseRepeats(args[i]);
-						if (x != -1) {
-							repeats += x;
-							parsables[i] = true;
-							foundSpecial = true;
-						}
-					}
+			void PrintChain(DiscordMessage message, DiceChain chain, int repeats) {
+				string user = $"{message.Author.Username}#{message.Author.Discriminator}";
+				if (!userRandoms.ContainsKey(user)) {
+					userRandoms.Add(user, new KarmicRandom());
 				}
-				repeats = repeats < 1 ? 1 : repeats;
-				if (dices.Count == 0) dices.Add(new Dice(1, 20));
-				if (forced || (parsables.All(i => i) && parsables.Length > 1 && foundSpecial)) {
-					PrintChain(message, new DiceChain(dices, mod), repeats);
-					return true;
-					} else return false;
+				Random random = userRandoms[user];
+				StringBuilder text = new StringBuilder();
+				BoldInt[] results = new BoldInt[repeats];
+				bool truncated = false, multiple = repeats > 1;
+				for (int i = 0; i < repeats; i++) {
+					results[i] = chain.Roll(random);
+					if (i < 6) text.Append($"{chain}\n");
+					else truncated = true;
 				}
+				if (truncated) text.Append("...\n");
+				if (multiple) text.Append("**Results:** ");
+				else text.Append("**Result:** ");
+				if (repeats <= 20) {
+					text.Append($"{string.Join(", ", results.Select(i => i.ToString()).ToArray())} ");
+				} else {
+					text.Append($"{string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ... ");
+				}
+				int total = results.Sum(i => i.value);
+				BoldInt displayTotal = new BoldInt(total, total == chain.min * repeats || total == chain.max * repeats);
+				if (multiple) text.Append($"| **Total:** {displayTotal}");
+				DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+					Content = text.ToString()
+					// Content = "meow"
+				};
+				reply.WithReply(message.Id);
+				message.RespondAsync(reply);
+			}
 
-				void PrintChain(DiscordMessage message, DiceChain chain, int repeats) {
-					string user = $"{message.Author.Username}#{message.Author.Discriminator}";
-					if (!userRandoms.ContainsKey(user)) {
-						userRandoms.Add(user, new KarmicRandom());
-					}
-					Random random = userRandoms[user];
-					StringBuilder text = new StringBuilder();
-					BoldInt[] results = new BoldInt[repeats];
-					bool truncated = false, multiple = repeats > 1;
-					for (int i = 0; i < repeats; i++) {
-						results[i] = chain.Roll(random);
-						if (i < 6) text.Append($"{chain}\n");
-						else truncated = true;
-					}
-					if (truncated) text.Append("...\n");
-					if (multiple) text.Append("**Results:** ");
-					else text.Append("**Result:** ");
-					if (repeats <= 20) {
-						text.Append($"{string.Join(", ", results.Select(i => i.ToString()).ToArray())} ");
-					} else {
-						text.Append($"{string.Join(", ", results.Take(20).Select(i => i.ToString()).ToArray())} ... ");
-					}
-					int total = results.Sum(i => i.value);
-					BoldInt displayTotal = new BoldInt(total, total == chain.min * repeats || total == chain.max * repeats);
-					if (multiple) text.Append($"| **Total:** {displayTotal}");
+			Dice ParseDice(string input) {
+				string[] splits = input.Split('d');
+				if (splits.Length != 2) return null;
+				int repeats = 0, size = 0;
+				if (input.StartsWith("d") && int.TryParse(splits[1], out size)) return new Dice(1, size);
+				if (!(int.TryParse(splits[0], out repeats) && int.TryParse(splits[1], out size))) return null;
+				return new Dice(repeats, size);
+			}
+
+			int ParseRepeats(string input) {
+				if (input.Equals("x")) return 2;
+				string[] splits = input.Split('x');
+				if (splits.Length != 2 || !(splits[0].Equals("") ^ splits[1].Equals(""))) return -1;
+				int parse;
+				if (int.TryParse(splits[0], out parse)) return parse;
+				if (int.TryParse(splits[1], out parse)) return parse;
+				return -1;
+			}
+
+			bool ParsePing(DiscordMessage message, List<string> args) {
+				if (!args[0].Equals("boop") && !args[0].Equals("ping")) return false;
+				if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
+				else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
+				return true;
+			}
+
+			bool ParsePlay(DiscordMessage message, MessageCreateEventArgs e) {
+				if (message.Content.Length < 5 || message.Content.Substring(0, 5) != "play ") return false;
+				VoiceNextExtension voiceNext = client.GetVoiceNext();
+				DiscordVoiceState voiceState = ((DiscordMember)message.Author).VoiceState;
+				VoiceNextConnection voiceConnection = voiceNext.GetConnection(e.Guild);
+				if (voiceState == null) {
 					DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-						Content = text.ToString()
-						// Content = "meow"
+						Content = "Please join a voice channel."
 					};
 					reply.WithReply(message.Id);
 					message.RespondAsync(reply);
-				}
-
-				Dice ParseDice(string input) {
-					string[] splits = input.Split('d');
-					if (splits.Length != 2) return null;
-					int repeats = 0, size = 0;
-					if (input.StartsWith("d") && int.TryParse(splits[1], out size)) return new Dice(1, size);
-					if (!(int.TryParse(splits[0], out repeats) && int.TryParse(splits[1], out size))) return null;
-					return new Dice(repeats, size);
-				}
-
-				int ParseRepeats(string input) {
-					if (input.Equals("x")) return 2;
-					string[] splits = input.Split('x');
-					if (splits.Length != 2 || !(splits[0].Equals("") ^ splits[1].Equals(""))) return -1;
-					int parse;
-					if (int.TryParse(splits[0], out parse)) return parse;
-					if (int.TryParse(splits[1], out parse)) return parse;
-					return -1;
-				}
-
-				bool ParsePing(DiscordMessage message, List<string> args) {
-					if (!args[0].Equals("boop") && !args[0].Equals("ping")) return false;
-					if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
-					else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 					return true;
+				} else if (voiceConnection == null) {
+					// voiceConnection = await voiceNext.ConnectAsync(voiceState.Channel);
+					_ = Connect(voiceNext, voiceState, voiceConnection);
 				}
 
-				bool ParsePlay(DiscordMessage message, MessageCreateEventArgs e) {
-					if (message.Content.Length < 5 || message.Content.Substring(0, 5) != "play ") return false;
-					VoiceNextExtension voiceNext = client.GetVoiceNext();
-					DiscordVoiceState voiceState = ((DiscordMember)message.Author).VoiceState;
-					VoiceNextConnection voiceConnection = voiceNext.GetConnection(e.Guild);
-					if (voiceState == null) {
-						DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-							Content = "Please join a voice channel."
-						};
-						reply.WithReply(message.Id);
-						message.RespondAsync(reply);
-						return true;
-					} else if (voiceConnection == null) {
-						// voiceConnection = await voiceNext.ConnectAsync(voiceState.Channel);
-						_ = Connect(voiceNext, voiceState, voiceConnection);
-					}
-
-					string filePath = message.Content.Substring(5);
-					if (!File.Exists($@"C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}")) {
-						DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-							Content = "File does not exist."
-						};
-						reply.WithReply(message.Id);
-						message.RespondAsync(reply);
-						return true;
-					} else {
-						_ = Play(voiceConnection, filePath);
-					}
+				string filePath = message.Content.Substring(5);
+				if (!File.Exists($@"C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}")) {
+					DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+						Content = "File does not exist."
+					};
+					reply.WithReply(message.Id);
+					message.RespondAsync(reply);
 					return true;
+				} else {
+					_ = Play(voiceConnection, filePath);
 				}
+				return true;
+			}
 
-				async Task Connect(VoiceNextExtension voice, DiscordVoiceState state, VoiceNextConnection connection) {
-					connection = await voice.ConnectAsync(state.Channel);
-				}
+			async Task Connect(VoiceNextExtension voice, DiscordVoiceState state, VoiceNextConnection connection) {
+				connection = await voice.ConnectAsync(state.Channel);
+			}
 
-				async Task Play(VoiceNextConnection connection, string filePath) {
-					while (connection.IsPlaying) await connection.WaitForPlaybackFinishAsync();
+			async Task Play(VoiceNextConnection connection, string filePath) {
+				while (connection.IsPlaying) await connection.WaitForPlaybackFinishAsync();
 
-					try {
-						await connection.SendSpeakingAsync(true);
+				try {
+					await connection.SendSpeakingAsync(true);
 
-						var psi = new ProcessStartInfo
-						{
-							FileName = "ffmpeg.exe",
-							Arguments = $@"-i ""C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
-							RedirectStandardOutput = true,
-							UseShellExecute = false
-						};
-						var ffmpeg = Process.Start(psi);
-						var ffout = ffmpeg.StandardOutput.BaseStream;
+					var psi = new ProcessStartInfo
+					{
+						FileName = "ffmpeg.exe",
+						Arguments = $@"-i ""C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
+						RedirectStandardOutput = true,
+						UseShellExecute = false
+					};
+					var ffmpeg = Process.Start(psi);
+					var ffout = ffmpeg.StandardOutput.BaseStream;
 
-						var txStream = connection.GetTransmitSink();
-						await ffout.CopyToAsync(txStream);
-						await txStream.FlushAsync();
-						await connection.WaitForPlaybackFinishAsync();
-					} catch (Exception exc) {
-						Console.WriteLine(exc);
-					}
+					var txStream = connection.GetTransmitSink();
+					await ffout.CopyToAsync(txStream);
+					await txStream.FlushAsync();
+					await connection.WaitForPlaybackFinishAsync();
+				} catch (Exception exc) {
+					Console.WriteLine(exc);
 				}
 			}
+		}
