@@ -23,7 +23,7 @@ class Bot {
 	DiscordChannel musicChannel;
 	VoiceNextConnection connection;
 	Queue<string> songs = new Queue<string>();
-	Queue<string> downloads = new Queue<string>();
+	List<string> downloads = new List<string>();
 
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -44,16 +44,14 @@ class Bot {
 		if (ParsePing(message, args)) return null;
 		if (ParseChain(message, args)) return null;
 		if (ParsePlay(message, e)) return null;
+		if (ParseView(message, args)) return null;
 		return null;
 	}
 
 	async Task Main() {
 		await client.ConnectAsync();
 		relay = await client.GetChannelAsync(1025223875304374274);
-		// relay = await client.GetChannelAsync(881599328639135754);
-
 		client.MessageCreated += MessageCreated;
-		// client.MessageCreated += ParsePlay;
 		client.Ready += Ready;
 		client.UseVoiceNext();
 		// client.onuserleft += check if any left, if not, leave
@@ -64,28 +62,31 @@ class Bot {
 		await Task.Delay(-1);
 	}
 
-	void DumpRelay() {
-		while (true) {
-			try {
-				using (FileStream fileStream = File.Open("Relay.txt", FileMode.Open)) {
-					StreamReader reader = new StreamReader(fileStream);
-					string line;
-					while ((line = reader.ReadLine()) != null) {
-						relay.SendMessageAsync(line);
-						Thread.Sleep(1000);
-					}
-					fileStream.SetLength(0);
-				}
-			} catch {
-				Thread.Sleep(10000);
-			}
-			Thread.Sleep(2000);
-		}
+	async Task Ready(DiscordClient client, ReadyEventArgs e) {
+		Console.WriteLine("Picaro is online.");
+		// await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
+		await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
 	}
 
-	async Task Ready(DiscordClient client, ReadyEventArgs e) {
-		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
-	}
+	// void DumpRelay() {
+	// 	while (true) {
+	// 		try {
+	// 			using (FileStream fileStream = File.Open("Relay.txt", FileMode.Open)) {
+	// 				StreamReader reader = new StreamReader(fileStream);
+	// 				string line;
+	// 				while ((line = reader.ReadLine()) != null) {
+	// 					relay.SendMessageAsync(line);
+	// 					Thread.Sleep(1000);
+	// 				}
+	// 				fileStream.SetLength(0);
+	// 			}
+	// 		} catch {
+	// 			Thread.Sleep(10000);
+	// 		}
+	// 		Thread.Sleep(2000);
+	// 	}
+	// }
+
 
 	bool ParseChain(DiscordMessage message, List<string> args) {
 		bool forced = false;
@@ -189,6 +190,33 @@ class Bot {
 		return true;
 	}
 
+	bool ParseView(DiscordMessage message, List<string> args) {
+		if (!(args[0] == "view" && args[1] == "queue" && args.Count == 2)) return false;
+		StringBuilder text = new StringBuilder();
+		if (songs.Count > 0) {
+			text.Append("Song Queue\n");
+			foreach (string song in songs) {
+				text.Append($"- {song}\n");
+			}
+		} else {
+			text.Append("The song queue is empty.\n");
+		}
+		if (downloads.Count > 0) {
+			text.Append("\nProcessing Queue\n");
+			foreach (string download in downloads) {
+				text.Append($"- {download}\n");
+			}
+		} else {
+			text.Append("\nThe processing queue is empty.\n");
+		}
+		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+			Content = text.ToString()
+		};
+		reply.WithReply(message.Id);
+		message.RespondAsync(reply);
+		return true;
+	}
+
 	bool ParsePlay(DiscordMessage message, MessageCreateEventArgs e) {
 		if (message.Content.Length < 5 || message.Content.Substring(0, 5) != "play ") return false;
 		musicChannel = message.Channel;
@@ -203,28 +231,14 @@ class Bot {
 			message.RespondAsync(reply);
 			return true;
 		} else if (voiceConnection == null) {
-			// voiceConnection = await voiceNext.ConnectAsync(voiceState.Channel);
 			_ = Connect(voiceNext, voiceState, voiceConnection);
+			// connection = await voiceNext.ConnectAsync(voiceState.Channel);
 		}
-
-		// string filePath = message.Content.Substring(5);
-		// if (!File.Exists($@"C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}")) {
-		// 	DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-		// 		Content = "File does not exist."
-		// 	};
-		// 	reply.WithReply(message.Id);
-		// 	message.RespondAsync(reply);
-		// 	return true;
-		// } else {
-		// 	_ = Play(voiceConnection, filePath);
-		// }
 
 		try {
 			string url = message.Content.Substring(5);
 			string videoId = HttpUtility.ParseQueryString(new Uri(url).Query)["v"];
-			Console.WriteLine(videoId);
-			string[] fileNames = Directory.GetFiles("./Downloads");
-			// Console.WriteLine(fileNames.Length);
+			string[] fileNames = Directory.GetFiles("./Downloads", "*.mp3");
 			string targetString = null;
 			for (int i = 0; i < fileNames.Length; ++i) {
 				if (fileNames[i].Contains(videoId)) {
@@ -234,8 +248,7 @@ class Bot {
 			}
 			if (string.IsNullOrEmpty(targetString))	{
 				DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-					// Content = "The song will be queued when ready. View progress with `view queue` (WIP)."
-					Content = "The song will be queued when ready."
+					Content = "The song will be queued when ready. View progress with `view queue`."
 				};
 				reply.WithReply(message.Id);
 				message.RespondAsync(reply);
@@ -244,8 +257,14 @@ class Bot {
 					Arguments = $@"-x --audio-format mp3 -P ./Downloads {url}"
 				};
 				Process download = Process.Start(command);
+				downloads.Add(videoId);
 			} else {
-				songs.Enqueue(targetString);
+				DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+					Content = "Queued song."
+				};
+				reply.WithReply(message.Id);
+				message.RespondAsync(reply);
+				songs.Enqueue(videoId);
 			}
 		} catch (Exception exc) {
 			Console.WriteLine(exc);
@@ -260,17 +279,18 @@ class Bot {
 	}
 
 	async Task Connect(VoiceNextExtension voice, DiscordVoiceState state, VoiceNextConnection connection) {
-		connection = await voice.ConnectAsync(state.Channel);
+		this.connection = await voice.ConnectAsync(state.Channel);
 	}
 
 	async Task Play(VoiceNextConnection connection, string filePath) {
+		Console.WriteLine($"playing {filePath}");
 		while (connection.IsPlaying) await connection.WaitForPlaybackFinishAsync();
 		try {
 			await connection.SendSpeakingAsync(true);
 
 			ProcessStartInfo psi = new ProcessStartInfo {
-				FileName = "ffmpeg.exe",
-				Arguments = $@"-i ""C:\Users\LOWERCASE\Desktop\Home\Music\{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
+				FileName = "./Downloads/ffmpeg.exe",
+				Arguments = $@"-i ""{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
 				RedirectStandardOutput = true,
 				UseShellExecute = false
 			};
@@ -283,14 +303,40 @@ class Bot {
 			await connection.WaitForPlaybackFinishAsync();
 		} catch (Exception exc) {
 			Console.WriteLine(exc);
+		} finally {
+			await connection.SendSpeakingAsync(false);
 		}
 	}
 
 	void Maestro() {
 		while (true) {
-			string[] fileNames = Directory.GetFiles("/Downloads");
-			Console.WriteLine(fileNames);
 			Thread.Sleep(2000);
+			string[] mp3s = Directory.GetFiles("./Downloads", "*.mp3");
+			for (int i = downloads.Count - 1; i >= 0; --i) {
+				for (int j = 0; j < mp3s.Length; ++j) {
+					if (mp3s[j].Contains(downloads[i])) {
+						songs.Enqueue(downloads[i]);
+						downloads.RemoveAt(i);
+					}
+				}
+			}
+			if (connection == null) {
+				songs.Clear();
+				continue;
+			}
+			if (connection.IsPlaying) {
+				continue;
+			}
+			if (songs.Count > 0) {
+				string nextMp3 = songs.Dequeue();
+				Console.WriteLine($"Dequeued {nextMp3}");
+				for (int i = 0; i < mp3s.Length; ++i) {
+					if (mp3s[i].Contains(nextMp3)) {
+						_ = Play(connection, mp3s[i]);
+						break;
+					}
+				}
+			}
 		}
 	}
 }
