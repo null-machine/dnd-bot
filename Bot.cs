@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using DSharpPlus;
+// using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.VoiceNext;
@@ -32,6 +33,18 @@ class Bot {
 		};
 		client = new DiscordClient(config);
 		Main().GetAwaiter().GetResult();
+		
+		// ServiceCollection serviceCollection = new ServiceCollection();
+		
+		// CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration() {
+		// 	// Add the service provider which will allow CommandsNext to inject the Random instance.
+		// 	Services = serviceCollection.BuildServiceProvider(),
+		// 	StringPrefixes = new[] { "/" }
+		// };
+		// CommandsNextExtension commandsNext = client.UseCommandsNext(commandsConfig);		
+		// // Register commands
+		// // CommandsNext will search the assembly for any classes that inherit from BaseCommandModule and register them as commands.
+		// commandsNext.RegisterCommands(typeof(Program).Assembly);
 	}
 
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
@@ -64,8 +77,8 @@ class Bot {
 
 	async Task Ready(DiscordClient client, ReadyEventArgs e) {
 		Console.WriteLine("Picaro is online.");
-		// await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
-		await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
+		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
+		// await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
 	}
 
 	// void DumpRelay() {
@@ -222,7 +235,7 @@ class Bot {
 		musicChannel = message.Channel;
 		VoiceNextExtension voiceNext = client.GetVoiceNext();
 		DiscordVoiceState voiceState = ((DiscordMember)message.Author).VoiceState;
-		VoiceNextConnection voiceConnection = voiceNext.GetConnection(e.Guild);
+		// connection = voiceNext.GetConnection(e.Guild);
 		if (voiceState == null) {
 			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 				Content = "Please join a voice channel."
@@ -230,9 +243,11 @@ class Bot {
 			reply.WithReply(message.Id);
 			message.RespondAsync(reply);
 			return true;
-		} else if (voiceConnection == null) {
-			_ = Connect(voiceNext, voiceState, voiceConnection);
+		} else if (connection == null) {
+			songs.Clear();
+			_ = Connect(voiceNext, voiceState, connection);
 			// connection = await voiceNext.ConnectAsync(voiceState.Channel);
+			// this.connection = await voice.ConnectAsync(state.Channel);
 		}
 
 		try {
@@ -320,13 +335,15 @@ class Bot {
 					}
 				}
 			}
-			if (connection == null) {
-				songs.Clear();
-				continue;
-			}
-			if (connection.IsPlaying) {
-				continue;
-			}
+			// if (connection == null) {
+			// 	Console.WriteLine("connection null, clearing songs");
+			// 	songs.Clear();
+			// 	continue;
+			// }
+			// if (connection == null || connection.IsPlaying) {
+			// 	Console.WriteLine("connection status: " + connection);
+			// 	continue;
+			// }
 			if (songs.Count > 0) {
 				string nextMp3 = songs.Dequeue();
 				Console.WriteLine($"Dequeued {nextMp3}");
