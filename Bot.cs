@@ -20,11 +20,17 @@ class Bot {
 	string[] hearts = new string[] { ":blue_heart:", ":yellow_heart:", ":heart:" };
 	Random funRandom = new Random();
 	Dictionary<string, KarmicRandom> userRandoms = new Dictionary<string, KarmicRandom>();
-	DiscordChannel relay;
-	DiscordChannel musicChannel;
-	VoiceNextConnection connection;
-	Queue<string> songs = new Queue<string>();
-	List<string> downloads = new List<string>();
+	
+	// DiscordChannel relay;
+	// DiscordChannel musicChannel;
+	// VoiceNextConnection connection;
+	// Queue<string> songs = new Queue<string>();
+	// List<string> downloads = new List<string>();
+	
+	string echo;
+	ulong echoChannel;
+	Queue<DiscordUser> echoUsers = new Queue<DiscordUser>();
+	int echoCount;
 
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -56,20 +62,21 @@ class Bot {
 		if (args.Count == 0) return null;
 		if (ParsePing(message, args)) return null;
 		if (ParseChain(message, args)) return null;
-		if (ParsePlay(message, e)) return null;
-		if (ParseView(message, args)) return null;
+		// if (ParsePlay(message, e)) return null;
+		// if (ParseView(message, args)) return null;
+		if (ParseEcho(message, args)) return null;
 		return null;
 	}
 
 	async Task Main() {
 		await client.ConnectAsync();
-		relay = await client.GetChannelAsync(1025223875304374274);
+		// relay = await client.GetChannelAsync(1025223875304374274);
 		client.MessageCreated += MessageCreated;
 		client.Ready += Ready;
 		client.UseVoiceNext();
 		// client.onuserleft += check if any left, if not, leave
 
-		new Thread(delegate() { Maestro(); }).Start();
+		// new Thread(delegate() { Maestro(); }).Start();
 		// new Thread(delegate() { DumpRelay(); }).Start();
 
 		await Task.Delay(-1);
@@ -197,163 +204,191 @@ class Bot {
 	}
 
 	bool ParsePing(DiscordMessage message, List<string> args) {
-		if (!args[0].Equals("boop") && !args[0].Equals("ping")) return false;
+		if (message.Content != "ping" && message.Content != "boop" && message.Content != "good bot") return false;
 		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
 	}
-
-	bool ParseView(DiscordMessage message, List<string> args) {
-		if (!(args[0] == "view" && args[1] == "queue" && args.Count == 2)) return false;
-		StringBuilder text = new StringBuilder();
-		if (songs.Count > 0) {
-			text.Append("Song Queue\n");
-			foreach (string song in songs) {
-				text.Append($"- {song}\n");
+	
+	bool ParseEcho(DiscordMessage message, List<string> args) {
+		if (message.ChannelId == echoChannel && message.Content == echo && !echoUsers.Contains(message.Author)) {
+			++echoCount;
+			echoUsers.Enqueue(message.Author);
+			if (echoUsers.Count > 2) {
+				echoUsers.Dequeue();
+			}
+			if (echoCount > 1) {
+				_ = SendMessage(echo, message.Channel);
+				echo = "";
+				echoChannel = 0;
+				echoCount = 0;
 			}
 		} else {
-			text.Append("The song queue is empty.\n");
-		}
-		if (downloads.Count > 0) {
-			text.Append("\nProcessing Queue\n");
-			foreach (string download in downloads) {
-				text.Append($"- {download}\n");
-			}
-		} else {
-			text.Append("\nThe processing queue is empty.\n");
-		}
-		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-			Content = text.ToString()
-		};
-		reply.WithReply(message.Id);
-		message.RespondAsync(reply);
-		return true;
-	}
-
-	bool ParsePlay(DiscordMessage message, MessageCreateEventArgs e) {
-		if (message.Content.Length < 5 || message.Content.Substring(0, 5) != "play ") return false;
-		musicChannel = message.Channel;
-		VoiceNextExtension voiceNext = client.GetVoiceNext();
-		DiscordVoiceState voiceState = ((DiscordMember)message.Author).VoiceState;
-		// connection = voiceNext.GetConnection(e.Guild);
-		if (voiceState == null) {
-			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-				Content = "Please join a voice channel."
-			};
-			reply.WithReply(message.Id);
-			message.RespondAsync(reply);
-			return true;
-		} else if (connection == null) {
-			songs.Clear();
-			_ = Connect(voiceNext, voiceState, connection);
-			// connection = await voiceNext.ConnectAsync(voiceState.Channel);
-			// this.connection = await voice.ConnectAsync(state.Channel);
-		}
-
-		try {
-			string url = message.Content.Substring(5);
-			string videoId = HttpUtility.ParseQueryString(new Uri(url).Query)["v"];
-			string[] fileNames = Directory.GetFiles("./Downloads", "*.mp3");
-			string targetString = null;
-			for (int i = 0; i < fileNames.Length; ++i) {
-				if (fileNames[i].Contains(videoId)) {
-					targetString = fileNames[i];
-					break;
-				}
-			}
-			if (string.IsNullOrEmpty(targetString))	{
-				DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-					Content = "The song will be queued when ready. View progress with `view queue`."
-				};
-				reply.WithReply(message.Id);
-				message.RespondAsync(reply);
-				ProcessStartInfo command = new ProcessStartInfo {
-					FileName = "./Downloads/yt-dlp.exe",
-					Arguments = $@"-x --audio-format mp3 -P ./Downloads {url}"
-				};
-				Process download = Process.Start(command);
-				downloads.Add(videoId);
-			} else {
-				DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-					Content = "Queued song."
-				};
-				reply.WithReply(message.Id);
-				message.RespondAsync(reply);
-				songs.Enqueue(videoId);
-			}
-		} catch (Exception exc) {
-			Console.WriteLine(exc);
-			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-				Content = "LOWERCASE#0357 There was an error in music playback, please check the console."
-			};
-			reply.WithReply(message.Id);
-			message.RespondAsync(reply);
-			return false;
+			echo = message.Content;
+			echoChannel = message.ChannelId;
+			echoCount = 0;
+			echoUsers.Clear();
+			echoUsers.Enqueue(message.Author);
 		}
 		return true;
 	}
-
-	async Task Connect(VoiceNextExtension voice, DiscordVoiceState state, VoiceNextConnection connection) {
-		this.connection = await voice.ConnectAsync(state.Channel);
+	
+	
+	async Task SendMessage(string content, DiscordChannel channel) {
+		await new DiscordMessageBuilder().WithContent(echo).SendAsync(channel);
 	}
 
-	async Task Play(VoiceNextConnection connection, string filePath) {
-		Console.WriteLine($"playing {filePath}");
-		while (connection.IsPlaying) await connection.WaitForPlaybackFinishAsync();
-		try {
-			await connection.SendSpeakingAsync(true);
+	// bool ParseView(DiscordMessage message, List<string> args) {
+	// 	if (!(args[0] == "view" && args[1] == "queue" && args.Count == 2)) return false;
+	// 	StringBuilder text = new StringBuilder();
+	// 	if (songs.Count > 0) {
+	// 		text.Append("Song Queue\n");
+	// 		foreach (string song in songs) {
+	// 			text.Append($"- {song}\n");
+	// 		}
+	// 	} else {
+	// 		text.Append("The song queue is empty.\n");
+	// 	}
+	// 	if (downloads.Count > 0) {
+	// 		text.Append("\nProcessing Queue\n");
+	// 		foreach (string download in downloads) {
+	// 			text.Append($"- {download}\n");
+	// 		}
+	// 	} else {
+	// 		text.Append("\nThe processing queue is empty.\n");
+	// 	}
+	// 	DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+	// 		Content = text.ToString()
+	// 	};
+	// 	reply.WithReply(message.Id);
+	// 	message.RespondAsync(reply);
+	// 	return true;
+	// }
 
-			ProcessStartInfo psi = new ProcessStartInfo {
-				FileName = "./Downloads/ffmpeg.exe",
-				Arguments = $@"-i ""{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
-				RedirectStandardOutput = true,
-				UseShellExecute = false
-			};
-			Process ffmpeg = Process.Start(psi);
-			var ffout = ffmpeg.StandardOutput.BaseStream;
+	// bool ParsePlay(DiscordMessage message, MessageCreateEventArgs e) {
+	// 	if (message.Content.Length < 5 || message.Content.Substring(0, 5) != "play ") return false;
+	// 	musicChannel = message.Channel;
+	// 	VoiceNextExtension voiceNext = client.GetVoiceNext();
+	// 	DiscordVoiceState voiceState = ((DiscordMember)message.Author).VoiceState;
+	// 	// connection = voiceNext.GetConnection(e.Guild);
+	// 	if (voiceState == null) {
+	// 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+	// 			Content = "Please join a voice channel."
+	// 		};
+	// 		reply.WithReply(message.Id);
+	// 		message.RespondAsync(reply);
+	// 		return true;
+	// 	} else if (connection == null) {
+	// 		songs.Clear();
+	// 		_ = Connect(voiceNext, voiceState, connection);
+	// 		// connection = await voiceNext.ConnectAsync(voiceState.Channel);
+	// 		// this.connection = await voice.ConnectAsync(state.Channel);
+	// 	}
 
-			var txStream = connection.GetTransmitSink();
-			await ffout.CopyToAsync(txStream);
-			await txStream.FlushAsync();
-			await connection.WaitForPlaybackFinishAsync();
-		} catch (Exception exc) {
-			Console.WriteLine(exc);
-		} finally {
-			await connection.SendSpeakingAsync(false);
-		}
-	}
+	// 	try {
+	// 		string url = message.Content.Substring(5);
+	// 		string videoId = HttpUtility.ParseQueryString(new Uri(url).Query)["v"];
+	// 		string[] fileNames = Directory.GetFiles("./Downloads", "*.mp3");
+	// 		string targetString = null;
+	// 		for (int i = 0; i < fileNames.Length; ++i) {
+	// 			if (fileNames[i].Contains(videoId)) {
+	// 				targetString = fileNames[i];
+	// 				break;
+	// 			}
+	// 		}
+	// 		if (string.IsNullOrEmpty(targetString))	{
+	// 			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+	// 				Content = "The song will be queued when ready. View progress with `view queue`."
+	// 			};
+	// 			reply.WithReply(message.Id);
+	// 			message.RespondAsync(reply);
+	// 			ProcessStartInfo command = new ProcessStartInfo {
+	// 				FileName = "./Downloads/yt-dlp.exe",
+	// 				Arguments = $@"-x --audio-format mp3 -P ./Downloads {url}"
+	// 			};
+	// 			Process download = Process.Start(command);
+	// 			downloads.Add(videoId);
+	// 		} else {
+	// 			DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+	// 				Content = "Queued song."
+	// 			};
+	// 			reply.WithReply(message.Id);
+	// 			message.RespondAsync(reply);
+	// 			songs.Enqueue(videoId);
+	// 		}
+	// 	} catch (Exception exc) {
+	// 		Console.WriteLine(exc);
+	// 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+	// 			Content = "LOWERCASE#0357 There was an error in music playback, please check the console."
+	// 		};
+	// 		reply.WithReply(message.Id);
+	// 		message.RespondAsync(reply);
+	// 		return false;
+	// 	}
+	// 	return true;
+	// }
 
-	void Maestro() {
-		while (true) {
-			Thread.Sleep(2000);
-			string[] mp3s = Directory.GetFiles("./Downloads", "*.mp3");
-			for (int i = downloads.Count - 1; i >= 0; --i) {
-				for (int j = 0; j < mp3s.Length; ++j) {
-					if (mp3s[j].Contains(downloads[i])) {
-						songs.Enqueue(downloads[i]);
-						downloads.RemoveAt(i);
-					}
-				}
-			}
-			// if (connection == null) {
-			// 	Console.WriteLine("connection null, clearing songs");
-			// 	songs.Clear();
-			// 	continue;
-			// }
-			// if (connection == null || connection.IsPlaying) {
-			// 	Console.WriteLine("connection status: " + connection);
-			// 	continue;
-			// }
-			if (songs.Count > 0) {
-				string nextMp3 = songs.Dequeue();
-				Console.WriteLine($"Dequeued {nextMp3}");
-				for (int i = 0; i < mp3s.Length; ++i) {
-					if (mp3s[i].Contains(nextMp3)) {
-						_ = Play(connection, mp3s[i]);
-						break;
-					}
-				}
-			}
-		}
-	}
+	// async Task Connect(VoiceNextExtension voice, DiscordVoiceState state, VoiceNextConnection connection) {
+	// 	this.connection = await voice.ConnectAsync(state.Channel);
+	// }
+
+	// async Task Play(VoiceNextConnection connection, string filePath) {
+	// 	Console.WriteLine($"playing {filePath}");
+	// 	while (connection.IsPlaying) await connection.WaitForPlaybackFinishAsync();
+	// 	try {
+	// 		await connection.SendSpeakingAsync(true);
+
+	// 		ProcessStartInfo psi = new ProcessStartInfo {
+	// 			FileName = "./Downloads/ffmpeg.exe",
+	// 			Arguments = $@"-i ""{filePath}"" -ac 2 -f s16le -ar 48000 pipe:1 -filter:a loudnorm -loglevel quiet",
+	// 			RedirectStandardOutput = true,
+	// 			UseShellExecute = false
+	// 		};
+	// 		Process ffmpeg = Process.Start(psi);
+	// 		var ffout = ffmpeg.StandardOutput.BaseStream;
+
+	// 		var txStream = connection.GetTransmitSink();
+	// 		await ffout.CopyToAsync(txStream);
+	// 		await txStream.FlushAsync();
+	// 		await connection.WaitForPlaybackFinishAsync();
+	// 	} catch (Exception exc) {
+	// 		Console.WriteLine(exc);
+	// 	} finally {
+	// 		await connection.SendSpeakingAsync(false);
+	// 	}
+	// }
+
+	// void Maestro() {
+	// 	while (true) {
+	// 		Thread.Sleep(2000);
+	// 		string[] mp3s = Directory.GetFiles("./Downloads", "*.mp3");
+	// 		for (int i = downloads.Count - 1; i >= 0; --i) {
+	// 			for (int j = 0; j < mp3s.Length; ++j) {
+	// 				if (mp3s[j].Contains(downloads[i])) {
+	// 					songs.Enqueue(downloads[i]);
+	// 					downloads.RemoveAt(i);
+	// 				}
+	// 			}
+	// 		}
+	// 		// if (connection == null) {
+	// 		// 	Console.WriteLine("connection null, clearing songs");
+	// 		// 	songs.Clear();
+	// 		// 	continue;
+	// 		// }
+	// 		// if (connection == null || connection.IsPlaying) {
+	// 		// 	Console.WriteLine("connection status: " + connection);
+	// 		// 	continue;
+	// 		// }
+	// 		if (songs.Count > 0) {
+	// 			string nextMp3 = songs.Dequeue();
+	// 			Console.WriteLine($"Dequeued {nextMp3}");
+	// 			for (int i = 0; i < mp3s.Length; ++i) {
+	// 				if (mp3s[i].Contains(nextMp3)) {
+	// 					_ = Play(connection, mp3s[i]);
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
