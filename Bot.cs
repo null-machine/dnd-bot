@@ -19,7 +19,7 @@ class Bot {
 	DiscordClient client;
 	string[] hearts = new string[] { ":blue_heart:", ":yellow_heart:", ":heart:" };
 	Random funRandom = new Random();
-	Dictionary<string, KarmicRandom> userRandoms = new Dictionary<string, KarmicRandom>();
+	Dictionary<string, Random> userRandoms = new Dictionary<string, Random>();
 	
 	// DiscordChannel relay;
 	// DiscordChannel musicChannel;
@@ -122,7 +122,7 @@ class Bot {
 				if (x != -1) {
 					repeats += x;
 					parsables[i] = true;
-					foundSpecial = true;
+					// foundSpecial = true;
 				}
 			}
 		}
@@ -137,7 +137,8 @@ class Bot {
 	void PrintChain(DiscordMessage message, DiceChain chain, int repeats) {
 		string user = $"{message.Author.Username}#{message.Author.Discriminator}";
 		if (!userRandoms.ContainsKey(user)) {
-			userRandoms.Add(user, new KarmicRandom());
+			userRandoms.Add(user, new Random());
+			// userRandoms.Add(user, new KarmicRandom());
 		}
 		Random random = userRandoms[user];
 		StringBuilder text = new StringBuilder();

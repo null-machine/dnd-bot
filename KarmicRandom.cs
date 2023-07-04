@@ -11,6 +11,7 @@ class KarmicRandom : Random {
 
 	public override int Next(int maxValue) {
 		if (maxValue != 20) return base.Next(maxValue);
+		
 		if (Math.Abs(karma) >= threshold) {
 			if (karma > 0) {
 				karma = -1;
@@ -20,6 +21,7 @@ class KarmicRandom : Random {
 				return base.Next(maxValue / 2);
 			}
 		}
+		
 		int value = base.Next(maxValue);
 		if (value < maxValue / 2) {
 			if (karma >= 0) karma++;
@@ -28,6 +30,7 @@ class KarmicRandom : Random {
 			if (karma <= 0) karma--;
 			else karma = -1;
 		}
+		
 		return value;
 	}
 }
