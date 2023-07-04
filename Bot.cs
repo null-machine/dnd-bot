@@ -17,7 +17,7 @@ using DSharpPlus.VoiceNext;
 class Bot {
 
 	DiscordClient client;
-	string[] hearts = new string[] { ":blue_heart:", ":yellow_heart:", ":heart:" };
+	string[] hearts = new string[] { ":blue_heart:", ":yellow_heart:", ":heart:", ":purple_heart:" };
 	Random funRandom = new Random();
 	Dictionary<string, Random> userRandoms = new Dictionary<string, Random>();
 	
@@ -50,6 +50,7 @@ class Bot {
 		if (args.Count == 0) return null;
 		if (ParsePing(message, args)) return null;
 		if (ParseChain(message, args)) return null;
+		if (ParseChat(message, args)) return null;
 		if (ParseEcho(message, args)) return null; // echo has to be last
 		return null;
 	}
@@ -188,8 +189,9 @@ class Bot {
 	}
 
 	bool ParsePing(DiscordMessage message, List<string> args) {
-		if (message.Content != "ping" && message.Content != "boop" && message.Content != "good bot") return false;
-		if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
+		if (message.Content != "ping" && message.Content != "boop" && message.Content != "good bot" && message.Content != "BAD BOT") return false;
+		if (message.Content == "BAD BOT") message.CreateReactionAsync(DiscordEmoji.FromName(client, ":broken_heart:"));
+		else if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
 	}
@@ -214,6 +216,29 @@ class Bot {
 			echoUsers.Clear();
 			echoUsers.Enqueue(message.Author);
 		}
+		return true;
+	}
+	
+	bool ParseChat(DiscordMessage message, List<string> args) {
+		if (args[0] != "<551378788286464000>") return false;
+		
+		Process p = new Process();
+		p.StartInfo.UseShellExecute = false;
+		p.StartInfo.RedirectStandardOutput = true;
+		p.StartInfo.FileName = "java";
+		p.StartInfo.Arguments = "-cp \"C:/Users/LOWERCASE/Desktop/Server/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
+		p.Start();
+		string output = p.StandardOutput.ReadToEnd();
+		p.WaitForExit();
+		
+		// Console.WriteLine(message.Content.Substring(22));
+		
+		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+			// Content = "meow"
+			Content = output
+		};
+		reply.WithReply(message.Id);
+		message.RespondAsync(reply);
 		return true;
 	}
 	
