@@ -46,16 +46,16 @@ class Bot {
 		Main().GetAwaiter().GetResult();
 	}
 
-	Task MessageCreated(DiscordClient client, MessageCreateEventArgs e) {
-		if (e.Author.Equals(client.CurrentUser)) return null;
-		DiscordMessage message = e.Message;
+	Task MessageCreated(DiscordClient client, MessageCreateEventArgs context) {
+		if (context.Author.Equals(client.CurrentUser)) return null;
+		DiscordMessage message = context.Message;
 		string line = message.Content.Replace('+', ' ').ToLower();
 		line = new string(line.Where(i => !char.IsPunctuation(i) || i == '-').ToArray());
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 		if (args.Count == 0) return null;
 		if (ParsePing(message, args)) return null;
 		if (ParseChain(message, args)) return null;
-		if (ParseChat(message, args)) return null;
+		if (ParseChat(message, args, context)) return null;
 		if (ParseEcho(message, args)) return null; // echo has to be last
 		return null;
 	}
@@ -228,7 +228,7 @@ class Bot {
 		return true;
 	}
 	
-	bool ParseChat(DiscordMessage message, List<string> args) {
+	bool ParseChat(DiscordMessage message, List<string> args, MessageCreateEventArgs context) {
 		if (args[0] != "<551378788286464000>") return false;
 		
 		// Process p = new Process();
@@ -240,9 +240,17 @@ class Bot {
 		// string output = p.StandardOutput.ReadToEnd();
 		// p.WaitForExit();
 		
+		Console.WriteLine(context.Guild.Members[message.Author.Id].ToString());
+		string authorName = context.Guild.Members[message.Author.Id].Nickname;
+		Console.WriteLine($"nickname {authorName}");
+		if (authorName == "") authorName = context.Guild.Members[message.Author.Id].DisplayName;
+		Console.WriteLine($"display name {authorName}");
+		
+		
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 			// Content = output
-			Content = ReplyGen.Gen(message.Content.Substring(22))
+			Content = ReplyGen.Gen(message.Content.Substring(22)).Replace("~", authorName)
+			// Content = ReplyGen.Gen(message.Content.Substring(22)).Replace("~", $"{context.Guild.Members.ToString()}")
 		};
 		reply.WithReply(message.Id);
 		message.RespondAsync(reply);
