@@ -38,6 +38,11 @@ class Bot {
 			TokenType = TokenType.Bot
 		};
 		client = new DiscordClient(config);
+		// ReplyGen.Gen("test");
+		ReplyGen.Init("ReplyGen/Keywords.data");
+		// ReplyGen.Gen("among us i love something");
+		Console.WriteLine(ReplyGen.Gen("hello"));
+		Console.WriteLine(ReplyGen.Gen("i love something"));
 		Main().GetAwaiter().GetResult();
 	}
 
@@ -68,8 +73,8 @@ class Bot {
 
 	async Task Ready(DiscordClient client, ReadyEventArgs e) {
 		Console.WriteLine("Picaro is online.");
-		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
-		// await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
+		// await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
+		await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
 	}
 
 	// void DumpRelay() {
@@ -189,8 +194,12 @@ class Bot {
 	}
 
 	bool ParsePing(DiscordMessage message, List<string> args) {
-		if (message.Content != "ping" && message.Content != "boop" && message.Content != "good bot" && message.Content != "BAD BOT") return false;
-		if (message.Content == "BAD BOT") message.CreateReactionAsync(DiscordEmoji.FromName(client, ":broken_heart:"));
+		if (message.Content == "BAD BOT") {
+			message.CreateReactionAsync(DiscordEmoji.FromName(client, ":broken_heart:"));
+			return true;
+		}
+		string text = message.Content.ToLower();
+		if (text != "ping" && text != "boop" && text != "good bot") return false;
 		else if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
@@ -222,20 +231,18 @@ class Bot {
 	bool ParseChat(DiscordMessage message, List<string> args) {
 		if (args[0] != "<551378788286464000>") return false;
 		
-		Process p = new Process();
-		p.StartInfo.UseShellExecute = false;
-		p.StartInfo.RedirectStandardOutput = true;
-		p.StartInfo.FileName = "java";
-		p.StartInfo.Arguments = "-cp \"C:/Users/LOWERCASE/Desktop/Server/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
-		p.Start();
-		string output = p.StandardOutput.ReadToEnd();
-		p.WaitForExit();
-		
-		// Console.WriteLine(message.Content.Substring(22));
+		// Process p = new Process();
+		// p.StartInfo.UseShellExecute = false;
+		// p.StartInfo.RedirectStandardOutput = true;
+		// p.StartInfo.FileName = "java";
+		// p.StartInfo.Arguments = "-cp \"C:/Users/LOWERCASE/Desktop/Server/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
+		// p.Start();
+		// string output = p.StandardOutput.ReadToEnd();
+		// p.WaitForExit();
 		
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
-			// Content = "meow"
-			Content = output
+			// Content = output
+			Content = ReplyGen.Gen(message.Content.Substring(22))
 		};
 		reply.WithReply(message.Id);
 		message.RespondAsync(reply);
