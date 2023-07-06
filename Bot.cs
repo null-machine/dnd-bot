@@ -21,6 +21,7 @@ class Bot {
 	Random funRandom = new Random();
 	Dictionary<string, Random> userRandoms = new Dictionary<string, Random>();
 	
+	DiscordChannel logChannel;
 	// DiscordChannel relay;
 	// DiscordChannel musicChannel;
 	// VoiceNextConnection connection;
@@ -35,29 +36,40 @@ class Bot {
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
 			Token = token,
-			TokenType = TokenType.Bot
+			TokenType = TokenType.Bot,
+			Intents = DiscordIntents.AllUnprivileged | DiscordIntents.MessageContents
 		};
 		client = new DiscordClient(config);
 		// ReplyGen.Gen("test");
 		ReplyGen.Init("ReplyGen/Keywords.data");
 		// ReplyGen.Gen("among us i love something");
-		Console.WriteLine(ReplyGen.Gen("hello"));
-		Console.WriteLine(ReplyGen.Gen("i love something"));
+		// Console.WriteLine(ReplyGen.Gen("hello"));
+		// Console.WriteLine(ReplyGen.Gen("i love something"));
 		Main().GetAwaiter().GetResult();
 	}
 
 	Task MessageCreated(DiscordClient client, MessageCreateEventArgs context) {
-		if (context.Author.Equals(client.CurrentUser)) return null;
+		if (context.Author.Equals(client.CurrentUser)) return Task.CompletedTask;
+		if (context.Guild == null) {
+			string log = $"{context.Author.Username} {context.Author.Id}: {context.Message.Content} ";
+			foreach (DiscordAttachment attachment in context.Message.Attachments) {
+				log += $"\n{attachment.Url}";
+			}
+			foreach (DiscordEmbed embed in context.Message.Embeds) {
+				log += $"\n{embed.Url.AbsoluteUri}";
+			}
+			logChannel.SendMessageAsync(log);
+		}
 		DiscordMessage message = context.Message;
 		string line = message.Content.Replace('+', ' ').ToLower();
 		line = new string(line.Where(i => !char.IsPunctuation(i) || i == '-').ToArray());
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
-		if (args.Count == 0) return null;
-		if (ParsePing(message, args)) return null;
-		if (ParseChain(message, args)) return null;
-		if (ParseChat(message, args, context)) return null;
-		if (ParseEcho(message, args)) return null; // echo has to be last
-		return null;
+		if (args.Count == 0) return Task.CompletedTask;
+		if (ParsePing(message, args)) return Task.CompletedTask;
+		if (ParseChain(message, args)) return Task.CompletedTask;
+		if (ParseChat(message, args, context) == Task.CompletedTask) return Task.CompletedTask;
+		if (ParseEcho(message, args)) return Task.CompletedTask; // echo has to be last
+		return Task.CompletedTask;
 	}
 
 	async Task Main() {
@@ -68,13 +80,14 @@ class Bot {
 		// relay = await client.GetChannelAsync(1025223875304374274);
 		// new Thread(delegate() { DumpRelay(); }).Start();
 
+		logChannel = await client.GetChannelAsync(1126250005653635154);
 		await Task.Delay(-1);
 	}
 
 	async Task Ready(DiscordClient client, ReadyEventArgs e) {
 		Console.WriteLine("Picaro is online.");
-		// await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
-		await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
+		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
+		// await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
 	}
 
 	// void DumpRelay() {
@@ -206,6 +219,7 @@ class Bot {
 	}
 	
 	bool ParseEcho(DiscordMessage message, List<string> args) {
+		// Console.WriteLine("parse echo called");
 		if (message.ChannelId == echoChannel && message.Content == echo && !echoUsers.Contains(message.Author)) {
 			++echoCount;
 			echoUsers.Enqueue(message.Author);
@@ -228,33 +242,44 @@ class Bot {
 		return true;
 	}
 	
-	bool ParseChat(DiscordMessage message, List<string> args, MessageCreateEventArgs context) {
-		if (args[0] != "<551378788286464000>") return false;
+	async Task ParseChat(DiscordMessage message, List<string> args, MessageCreateEventArgs context) {
+		if (args[0] != "<551378788286464000>") await new Task(() => { return; } );
 		
-		// Process p = new Process();
-		// p.StartInfo.UseShellExecute = false;
-		// p.StartInfo.RedirectStandardOutput = true;
-		// p.StartInfo.FileName = "java";
-		// p.StartInfo.Arguments = "-cp \"C:/Users/LOWERCASE/Desktop/Server/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
-		// p.Start();
-		// string output = p.StandardOutput.ReadToEnd();
-		// p.WaitForExit();
+		string response;
+		string authorName;
 		
-		Console.WriteLine(context.Guild.Members[message.Author.Id].ToString());
-		string authorName = context.Guild.Members[message.Author.Id].Nickname;
-		Console.WriteLine($"nickname {authorName}");
-		if (authorName == "") authorName = context.Guild.Members[message.Author.Id].DisplayName;
-		Console.WriteLine($"display name {authorName}");
+		if (context.Guild != null) {
+			authorName = (await context.Guild.GetMemberAsync(message.Author.Id)).Nickname;
+			// Console.WriteLine($"nickname {authorName}");
+			if (authorName == "") authorName = (await context.Guild.GetMemberAsync(message.Author.Id)).DisplayName;
+			// Console.WriteLine($"display name {authorName}");
+			if (authorName == "") authorName = "[YOUR NAME HERE]";
+		} else {
+			authorName = context.Author.Username;
+		}
 		
+		if (funRandom.Next(2) == 0) {
+			Process p = new Process();
+			p.StartInfo.UseShellExecute = false;
+			p.StartInfo.RedirectStandardOutput = true;
+			p.StartInfo.FileName = "java";
+			p.StartInfo.Arguments = "-cp \"C:/Users/LOWERCASE/Desktop/Server/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
+			p.Start();
+			response = p.StandardOutput.ReadToEnd();
+			p.WaitForExit();
+		} else {
+			response = ReplyGen.Gen(message.Content.Substring(22)).Replace("~", authorName);
+		}
 		
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 			// Content = output
-			Content = ReplyGen.Gen(message.Content.Substring(22)).Replace("~", authorName)
+			Content = response
 			// Content = ReplyGen.Gen(message.Content.Substring(22)).Replace("~", $"{context.Guild.Members.ToString()}")
-		};
-		reply.WithReply(message.Id);
-		message.RespondAsync(reply);
-		return true;
+		}.WithReply(message.Id);
+		authorName = message.Author.Username;
+		Console.WriteLine($"{authorName} {response}");
+		await message.RespondAsync(reply);
+		await Task.CompletedTask;
 	}
 	
 	
