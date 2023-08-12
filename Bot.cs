@@ -28,10 +28,6 @@ class Bot {
 	// Queue<string> songs = new Queue<string>();
 	// List<string> downloads = new List<string>();
 	
-	string echo;
-	ulong echoChannel;
-	Queue<DiscordUser> echoUsers = new Queue<DiscordUser>();
-	int echoCount;
 
 	internal Bot(string token) {
 		DiscordConfiguration config = new DiscordConfiguration() {
@@ -48,7 +44,7 @@ class Bot {
 		Main().GetAwaiter().GetResult();
 	}
 
-	Task MessageCreated(DiscordClient client, MessageCreateEventArgs context) {
+	async Task<Task> MessageCreated(DiscordClient client, MessageCreateEventArgs context) {
 		if (context.Author.Equals(client.CurrentUser)) return Task.CompletedTask;
 		if (context.Guild == null) {
 			string log = $"{context.Author.Username} {context.Author.Id}: {context.Message.Content} ";
@@ -58,17 +54,18 @@ class Bot {
 			foreach (DiscordEmbed embed in context.Message.Embeds) {
 				log += $"\n{embed.Url.AbsoluteUri}";
 			}
-			logChannel.SendMessageAsync(log);
+			return logChannel.SendMessageAsync(log);
 		}
 		DiscordMessage message = context.Message;
 		string line = message.Content.Replace('+', ' ').ToLower();
 		line = new string(line.Where(i => !char.IsPunctuation(i) || i == '-').ToArray());
 		List<string> args = line.Split(' ').Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+		// TODO maybe make +5 instead of 5
 		if (args.Count == 0) return Task.CompletedTask;
 		if (ParsePing(message, args)) return Task.CompletedTask;
 		if (ParseChain(message, args)) return Task.CompletedTask;
 		if (ParseChat(message, args, context) == Task.CompletedTask) return Task.CompletedTask;
-		if (ParseEcho(message, args)) return Task.CompletedTask; // echo has to be last
+		if (await ParseEcho(message, args) == Task.CompletedTask) return Task.CompletedTask; // echo has to be last
 		return Task.CompletedTask;
 	}
 
@@ -217,29 +214,27 @@ class Bot {
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
 		return true;
 	}
-	
-	bool ParseEcho(DiscordMessage message, List<string> args) {
+
+	async Task<Task> ParseEcho(DiscordMessage message, List<string> args) {
 		// Console.WriteLine("parse echo called");
-		if (message.ChannelId == echoChannel && message.Content == echo && !echoUsers.Contains(message.Author)) {
-			++echoCount;
-			echoUsers.Enqueue(message.Author);
-			if (echoUsers.Count > 2) {
-				echoUsers.Dequeue();
-			}
-			if (echoCount > 1) {
-				_ = SendMessage(echo, message.Channel);
-				echo = "";
-				echoChannel = 0;
-				echoCount = 0;
-			}
-		} else {
-			echo = message.Content;
-			echoChannel = message.ChannelId;
-			echoCount = 0;
-			echoUsers.Clear();
-			echoUsers.Enqueue(message.Author);
+		HashSet<DiscordUser> authors = new HashSet<DiscordUser>();
+		string content = message.Content;
+		foreach (DiscordMessage text in await message.Channel.GetMessagesAsync(3)) {
+			// Console.WriteLine(text.Content);
+			if (content != text.Content) break;
+			authors.Add(text.Author);
 		}
-		return true;
+		// foreach (DiscordUser author in authors) {
+		// 	Console.WriteLine(author);
+		// }
+		if (authors.Count >= 3) {
+			// Console.WriteLine("send message reached");
+			// Console.WriteLine(content);
+			// await SendMessage(content, message.Channel);
+			await message.Channel.SendMessageAsync(content);
+			return Task.CompletedTask;
+		}
+		return null;
 	}
 	
 	async Task ParseChat(DiscordMessage message, List<string> args, MessageCreateEventArgs context) {
@@ -258,7 +253,7 @@ class Bot {
 			authorName = context.Author.Username;
 		}
 		
-		if (funRandom.Next(2) == 0) {
+		if (funRandom.Next(3) == 0) {
 			Process p = new Process();
 			p.StartInfo.UseShellExecute = false;
 			p.StartInfo.RedirectStandardOutput = true;
@@ -283,7 +278,7 @@ class Bot {
 	}
 	
 	
-	async Task SendMessage(string content, DiscordChannel channel) {
-		await new DiscordMessageBuilder().WithContent(echo).SendAsync(channel);
-	}
+	// async Task SendMessage(string content, DiscordChannel channel) {
+	// 	await new DiscordMessageBuilder().WithContent(echo).SendAsync(channel);
+	// }
 }
