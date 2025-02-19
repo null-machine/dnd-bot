@@ -85,6 +85,12 @@ class Bot {
 		Console.WriteLine("Picaro is online.");
 		await client.UpdateStatusAsync(new DiscordActivity("God", ActivityType.Playing), UserStatus.Online);
 		// await client.UpdateStatusAsync(new DiscordActivity("maintenance", ActivityType.Competing), UserStatus.DoNotDisturb);
+		// 1122906458049237074
+
+		// DiscordChannel channel = await client.GetChannelAsync(1062733438387499048);
+		// channel.SendMessageAsync("https://cdn.discordapp.com/attachments/1062733438387499048/1232471280704426044/image0.jpg");
+		// DiscordChannel channel = await client.GetChannelAsync(1122906458049237074);
+		// channel.SendMessageAsync("");
 	}
 
 	// void DumpRelay() {
@@ -253,18 +259,19 @@ class Bot {
 			authorName = context.Author.Username;
 		}
 		
-		if (funRandom.Next(3) == 0) {
-			Process p = new Process();
-			p.StartInfo.UseShellExecute = false;
-			p.StartInfo.RedirectStandardOutput = true;
-			p.StartInfo.FileName = "java";
-			p.StartInfo.Arguments = "-cp \"C:/Users/LOWERCASE/Desktop/Server/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
-			p.Start();
-			response = p.StandardOutput.ReadToEnd();
-			p.WaitForExit();
-		} else {
+		// int selection = funRandom.Next(4);
+		// if (selection != 0) {
+		// 	Process p = new Process();
+		// 	p.StartInfo.UseShellExecute = false;
+		// 	p.StartInfo.RedirectStandardOutput = true;
+		// 	p.StartInfo.FileName = "java";
+		// 	p.StartInfo.Arguments = "-cp \"C:/Home/Repos/dnd-bot/Eliza\" Main \"" + message.Content.Substring(22) + "\"";
+		// 	p.Start();
+		// 	response = p.StandardOutput.ReadToEnd();
+		// 	p.WaitForExit();
+		// } else {
 			response = ReplyGen.Gen(message.Content.Substring(22)).Replace("~", authorName);
-		}
+		// }
 		
 		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
 			// Content = output
