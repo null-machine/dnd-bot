@@ -20,7 +20,8 @@ class Dice {
 		for (int i = 0; i < count; i++) {
 			int roll = random.Next(size) + 1;
 			result += roll;
-			results[i] = new BoldInt(roll, roll == 1 || roll == size);
+			// results[i] = new BoldInt(roll, roll == 1 || roll == size);
+			results[i] = new BoldInt(roll, roll == size || roll == 5);
 		}
 		return new BoldInt(result, result == count || result == count * size);
 	}
