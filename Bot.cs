@@ -65,6 +65,7 @@ class Bot {
 		if (ParsePing(message, args)) return Task.CompletedTask;
 		if (ParseChain(message, args)) return Task.CompletedTask;
 		if (ParseChat(message, args, context) == Task.CompletedTask) return Task.CompletedTask;
+		if (ParseUwu(message, args)) return Task.CompletedTask;
 		if (await ParseEcho(message, args) == Task.CompletedTask) return Task.CompletedTask; // echo has to be last
 		return Task.CompletedTask;
 	}
@@ -218,6 +219,44 @@ class Bot {
 		if (text != "ping" && text != "boop" && text != "good bot") return false;
 		else if (funRandom.Next(100) == 0) message.CreateReactionAsync(DiscordEmoji.FromName(client, ":black_heart:"));
 		else message.CreateReactionAsync(DiscordEmoji.FromName(client, hearts[funRandom.Next(hearts.Length)]));
+		return true;
+	}
+	
+	bool ParseUwu(DiscordMessage message, List<string> args) {
+		if (funRandom.Next(100) != 0) {
+		// if (funRandom.Next(1000) != 0 && message.Author.Username != "null_machine") {
+			return false;
+		}
+		
+		string text = Uwuifier.Uwuify(message.Content);
+		
+		
+		// File.WriteAllText("./buffer.txt", message.Content);
+		// var process = new Process {
+		// 	StartInfo = new ProcessStartInfo {
+		// 		FileName = "uwuify.exe",
+		// 		Arguments = "buffer.txt",
+		// 		UseShellExecute = false,
+		// 		RedirectStandardOutput = true,
+		// 		CreateNoWindow = true
+		// 	}
+		// };
+		// // Console.WriteLine("uwuifying " + message.Content);
+		// process.Start();
+		// string text = process.StandardOutput.ReadToEnd();
+		// // Console.WriteLine("uwuified " + text);
+		
+		
+		if (text == message.Content) {
+			return false;
+		}
+		DiscordMessageBuilder reply = new DiscordMessageBuilder() {
+			Content = text
+			// Content = "meow"
+		};
+		reply.WithReply(message.Id);
+		message.RespondAsync(reply);
+		
 		return true;
 	}
 
